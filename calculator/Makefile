@@ -3,7 +3,7 @@
 #=================================================
 -include dependency.mk # - do not abort if file does not exist
 
-.PHONY: depend default all clean cscope # specify phony target, do not generate file as target name
+.PHONY: create_dir depend default all clean cscope # specify phony target, do not generate file as target name
 
 .DEFAULT_GOAL=default # specify default target if there is no target specified
 
@@ -60,13 +60,13 @@ UNIT_TEST_TARGET =
 	$(FLEX) -o $@ $< 
 
 %.y.c:%.y
-	$(BISON) -v -Wall -o $@ $<
+	$(BISON) -v -y -Wall -o $@ $<
 
 %.lxx.c:%.lxx
 	$(FLEX) --c++ -o $@ $< 
 
 %.yxx.c:%.yxx
-	$(BISON) -v -Wall -o $@ $<
+	$(BISON) -v -y -Wall -o $@ $<
 
 #=================================================
 # Target rules
@@ -75,7 +75,7 @@ default: $(CALCULATOR_TARGET) $(SO_TARGET)
 
 all: $(CALCULATOR_TARGET) $(SO_TARGET) $(UNIT_TEST_TARGET)
 
-$(CALCULATOR_TARGET): $(LEX_YACC_TARGET) $(CALCULATOR_OBJ)
+$(CALCULATOR_TARGET): create_dir $(LEX_YACC_TARGET) $(CALCULATOR_OBJ)
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) $(UNIT_TEST_DIR)
 	cd $(LIBRARY_DIR);\
 	$(LINKER) -o $@ $(CALCULATOR_OBJ) $(LIBS);\

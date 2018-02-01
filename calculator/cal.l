@@ -1,13 +1,15 @@
 %{
-#ifdef __cplusplus
-#include "cal.y.cxx"
-#else
 #include "cal.y.c"
-#endif
 %}
 
+ /* use yyget_debug() to check debug flag */ 
 %option debug
+
+ /* enable yy_push_state, yy_pop_state and yy_top_state */
 %option stack
+
+ /* exclusive condition state */
+%x S_LINE_COMMENT
 
 number [0-9]+("."[0-9])?
 while_space [ \t]+
@@ -16,27 +18,37 @@ op_minus \-
 op_mul \*
 op_div \/
 op_pow \^
+line_comment \/\/
 
-/* ?i: means case insensitive */
+ /* ?i: means case insensitive */
 math_function (?i:(exp|sqrt|log))
 
 %%
-<*>{number} {
+{number} {
 	sscanf( yytext, "%lf", &(yylval.dval) ); 
 	return NUMBER;
 }
 
-<*>{while_space} {
-	return WHITE_SPACE;
+{while_space} {
+	/* ignore */
 }
 
-<*>{math_function} {
+{math_function} {
 	yylval.sval = strdup( yytext );
 	return MATH_FUNCTION;
 }
 
 "\n" {
+	/* ignore */
 	return '\n';
+}
+
+[()] {
+	return yytext[0];
+}
+
+{op_plus} {
+	return OP_PLUS;
 }
 
 {op_minus} {
@@ -55,8 +67,20 @@ math_function (?i:(exp|sqrt|log))
 	return OP_POW;
 }
 
-[()] {
-	return yytext[0];
+ /* handle comment */
+{line_comment} {
+	yy_push_state( S_LINE_COMMENT );
+	return START_LINE_COMMENT;
+}
+
+<S_LINE_COMMENT>[^\n]* {
+	yylval.sval = strdup( yytext );
+	return LINE_COMMENT_CONTEXT;
+}
+
+<S_LINE_COMMENT>"\n" {
+	yy_pop_state();
+	return END_LINE_COMMENT;
 }
 
 <<EOF>> {

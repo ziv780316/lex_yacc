@@ -6,7 +6,8 @@ void yyerror ( const char *msg )
 	fprintf( stderr, "[Error] invalid syntax\n" );
 }
 
-extern int yylex();
+int yyget_debug ();
+extern int yylex ();
 %}
 
 %union
@@ -17,61 +18,73 @@ extern int yylex();
 }
 
 %token<dval> NUMBER
-%token<sval> WHITE_SPACE
 %token<sval> MATH_FUNCTION
 %token<sval> OP_PLUS
 %token<sval> OP_MINUS
 %token<sval> OP_MUL
 %token<sval> OP_DIV
 %token<sval> OP_POW
+%token<sval> START_LINE_COMMENT
+%token<sval> LINE_COMMENT_CONTEXT
+%token<sval> END_LINE_COMMENT
 
 %type<dval> expression
-%type<dval> term
-%type<dval> factor
-%type<dval> group
+%type<dval> oprand
+
+ /* assign precedence, later declare has higher precedence */
+%left OP_MINUS OP_PLUS
+%left OP_DIV OP_MUL
+%right OP_POW
+%nonassoc OP_UMINUS
 
 %%
 all_syntax 
-	: /* empty string */ %empty 
-	| all_syntax expression '\n' { printf(" = %lf\n", $2); }
+	: syntax
+	| all_syntax syntax
+	;
+
+syntax
+	: /* empty */
+	| comment
+	| expression comment
+	| expression '\n' { printf(" = %lf\n", $1); }
+	;
+
+comment
+	: START_LINE_COMMENT LINE_COMMENT_CONTEXT END_LINE_COMMENT {
+		if ( yyget_debug() )
+		{
+			fprintf( stderr, "skip comment '%s'\n", $2 );
+		}
+	}
+	;
 
 expression
-    : term { $$ = $1; }
-    | expression OP_PLUS term { $$ = $1 + $3; }
-    | expression OP_MINUS term { $$ = $1 - $3; }
-    ;
+	: oprand { $$ = $1; }
+	| expression OP_PLUS  expression { $$ = $1 + $3; }
+	| expression OP_MINUS expression { $$ = $1 - $3; }
+	| expression OP_MUL   expression { $$ = $1 * $3; }
+	| expression OP_DIV   expression { $$ = $1 - $3; }
+	| expression OP_POW   expression { $$ = pow( $1, $3); }
+	| '(' expression ')' { $$ = $2; }
+	| MATH_FUNCTION '(' expression ')' {
+		if ( 0 == strcmp( $1, "exp" ) )
+		{
+			$$ = exp($3);
+		}
+		else if ( 0 == strcmp( $1, "sqrt" ) )
+		{
+			$$ = sqrt($3);
+		}
+		else if ( 0 == strcmp( $1, "log" ) )
+		{
+			$$ = log($3);
+		}
+	}
+	;
 
-term
-    : factor   { $$ = $1; }
-    | term OP_MUL factor  { $$ = $1 * $3; }
-    | term OP_DIV factor  { $$ = $1 / $3; }
-    | term OP_POW factor  { $$ = pow($1, $3); }
-    ;
-
-factor
+oprand
     : NUMBER { $$ = $1; }
-    | OP_MINUS NUMBER { $$ = -$2; }
-    | factor WHITE_SPACE { $$ = $1; }
-    | WHITE_SPACE factor { $$ = $2; }
-    | group   { $$ = $1; }
-    | MATH_FUNCTION group { 
-	if ( 0 == strcmp( $1, "exp" ) )
-	{
-		$$ = exp($2);
-	}
-	else if ( 0 == strcmp( $1, "sqrt" ) )
-	{
-		$$ = sqrt($2);
-	}
-	else if ( 0 == strcmp( $1, "log" ) )
-	{
-		$$ = log($2);
-	}
-}
-
-group
-    : '(' expression ')' { $$ = $2; }
-    | WHITE_SPACE '(' expression ')' { $$ = $3; }
-    ;
+    | OP_MINUS oprand %prec OP_UMINUS { $$ = -$2; }
 
 %%
