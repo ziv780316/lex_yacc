@@ -39,7 +39,6 @@ math_function (?i:(exp|sqrt|log))
 }
 
 "\n" {
-	/* ignore */
 	return '\n';
 }
 

@@ -44,7 +44,7 @@ all_syntax
 	;
 
 syntax
-	: /* empty */
+	: '\n'
 	| comment
 	| expression comment
 	| expression '\n' { printf(" = %lf\n", $1); }
@@ -84,7 +84,7 @@ expression
 	;
 
 oprand
-    : NUMBER { $$ = $1; }
-    | OP_MINUS oprand %prec OP_UMINUS { $$ = -$2; }
+	: NUMBER { $$ = $1; }
+	| OP_MINUS oprand %prec OP_UMINUS { $$ = -$2; }
 
 %%

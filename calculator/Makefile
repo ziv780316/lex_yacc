@@ -20,7 +20,7 @@ BISON    = bison
 LINKER   = ${CC}
 CFLAGS   = -g3 -Wfatal-errors -Wall -std=gnu99 ${DEFINES} -fPIC
 CXXFLAGS = -g3 -Wfatal-errors -Wall -std=c++11 ${DEFINES} -fPIC
-LIBS     = -lm -lfl
+LIBS     = -lm -L/usr/lib/x86_64-linux-gnu -lfl
 INCLUDE  = -I./include
 MOVE     = mv -f
 
@@ -57,7 +57,7 @@ UNIT_TEST_TARGET =
 	@$(MOVE) $@ $(LIBRARY_DIR)
 
 %.l.c:%.l
-	$(FLEX) -o $@ $< 
+	$(FLEX) -d -o $@ $< 
 
 %.y.c:%.y
 	$(BISON) -v -y -Wall -o $@ $<
@@ -75,14 +75,15 @@ default: $(CALCULATOR_TARGET) $(SO_TARGET)
 
 all: $(CALCULATOR_TARGET) $(SO_TARGET) $(UNIT_TEST_TARGET)
 
-$(CALCULATOR_TARGET): create_dir $(LEX_YACC_TARGET) $(CALCULATOR_OBJ)
+create_dir:
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) $(UNIT_TEST_DIR)
+
+$(CALCULATOR_TARGET): create_dir $(LEX_YACC_TARGET) $(CALCULATOR_OBJ)
 	cd $(LIBRARY_DIR);\
 	$(LINKER) -o $@ $(CALCULATOR_OBJ) $(LIBS);\
 	$(MOVE) $@ ../$(BIN_DIR)
 
 $(UNIT_TEST_TARGET): create_dir $(UNIT_TEST_OBJ)
-	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) $(UNIT_TEST_DIR)
 	cd $(LIBRARY_DIR);\
 	cd $(LIBRARY_DIR);\
 	$(LINKER) -o $@ $(UNIT_TEST_OBJ) $(LIBS);\
