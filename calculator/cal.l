@@ -2,14 +2,15 @@
 #include "cal.y.c"
 %}
 
- /* use yyget_debug() to check debug flag */ 
-%option debug
+ /* use yyget_debug() to check debug flag, equal to flex option -d */ 
+ /* %option debug */
 
  /* enable yy_push_state, yy_pop_state and yy_top_state */
 %option stack
 
  /* exclusive condition state */
 %x S_LINE_COMMENT
+%x S_BLOCK_COMMENT
 
 number [0-9]+("."[0-9])?
 while_space [ \t]+
@@ -19,6 +20,8 @@ op_mul \*
 op_div \/
 op_pow \^
 line_comment \/\/
+block_comment_start \/\*
+block_comment_end \*\/
 
  /* ?i: means case insensitive */
 math_function (?i:(exp|sqrt|log))
@@ -38,7 +41,7 @@ math_function (?i:(exp|sqrt|log))
 	return MATH_FUNCTION;
 }
 
-"\n" {
+<INITIAL,S_BLOCK_COMMENT>"\n" {
 	return '\n';
 }
 
@@ -80,6 +83,40 @@ math_function (?i:(exp|sqrt|log))
 <S_LINE_COMMENT>"\n" {
 	yy_pop_state();
 	return END_LINE_COMMENT;
+}
+
+{block_comment_start} {
+	yy_push_state( S_BLOCK_COMMENT );
+	return START_BLOCK_COMMENT;
+}
+
+<S_BLOCK_COMMENT>{block_comment_end} {
+	yy_pop_state();
+	return END_BLOCK_COMMENT;
+}
+
+<S_BLOCK_COMMENT>.+ {
+	char *neddle_addr = strstr( yytext, "*/" );
+	if ( neddle_addr )
+	{
+		int pos = (neddle_addr - yytext);
+		if ( 0 == pos )
+		{
+			// pattern --> */ ...
+			REJECT;
+		}
+		else
+		{
+			// pattern --> .. */ ...
+			yylval.sval = strndup( yytext, pos );
+			yyless( pos );
+		}
+	}
+	else
+	{
+		yylval.sval = strdup( yytext );
+	}
+	return BLOCK_COMMENT_CONTEXT;
 }
 
 <<EOF>> {

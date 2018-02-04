@@ -13,16 +13,17 @@ VPATH=include library bin unit_test # specify directory where to check target fi
 #=================================================
 # Compiler settings
 #=================================================
-CC       = gcc
-CXX      = g++
-FLEX     = flex 
-BISON    = bison
-LINKER   = ${CC}
-CFLAGS   = -g3 -Wfatal-errors -Wall -std=gnu99 ${DEFINES} -fPIC
-CXXFLAGS = -g3 -Wfatal-errors -Wall -std=c++11 ${DEFINES} -fPIC
-LIBS     = -lm -L/usr/lib/x86_64-linux-gnu -lfl
-INCLUDE  = -I./include
-MOVE     = mv -f
+CC        = gcc
+CXX       = g++
+FLEX      = flex 
+FLEX_FLAG = 
+BISON     = bison 
+LINKER    = ${CC}
+CFLAGS    = -O2 -Wfatal-errors -Wall -std=gnu99 ${DEFINES} -fPIC
+CXXFLAGS  = -O2 -Wfatal-errors -Wall -std=c++11 ${DEFINES} -fPIC
+LIBS      = -lm -L/usr/lib/x86_64-linux-gnu -lfl
+INCLUDE   = -I./include
+MOVE      = mv -f
 
 #=================================================
 # Build target
@@ -57,13 +58,13 @@ UNIT_TEST_TARGET =
 	@$(MOVE) $@ $(LIBRARY_DIR)
 
 %.l.c:%.l
-	$(FLEX) -d -o $@ $< 
+	$(FLEX) $(FLEX_FLAG) -o $@ $< 
 
 %.y.c:%.y
 	$(BISON) -v -y -Wall -o $@ $<
 
 %.lxx.c:%.lxx
-	$(FLEX) --c++ -o $@ $< 
+	$(FLEX) $(FLEX_FLAG) --c++ -o $@ $< 
 
 %.yxx.c:%.yxx
 	$(BISON) -v -y -Wall -o $@ $<
@@ -74,6 +75,12 @@ UNIT_TEST_TARGET =
 default: $(CALCULATOR_TARGET) $(SO_TARGET) 
 
 all: $(CALCULATOR_TARGET) $(SO_TARGET) $(UNIT_TEST_TARGET)
+
+debug: set_debug_flag default
+
+set_debug_flag:
+	$(eval FLEX_FLAG += -d )
+	$(eval CFLAGS += -g3 )
 
 create_dir:
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) $(UNIT_TEST_DIR)
@@ -100,3 +107,9 @@ depend:
 cscope:
 	find . -name "*.c" -o -name "*.cxx" -o -name "*.h" -o -name "*.hxx" > cscope.files
 	cscope -Rbq -i cscope.files
+
+qa:
+	cd $(UNIT_TEST_DIR);\
+	../bin/$(CALCULATOR_TARGET) < input1;\
+	../bin/$(CALCULATOR_TARGET) < input2;
+
