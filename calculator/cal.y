@@ -1,11 +1,7 @@
 %{
 #include <math.h>
 
-void yyerror ( const char *msg )
-{
-	fprintf( stderr, "[Error] invalid syntax\n" );
-}
-
+void yyerror ( const char *msg );
 int yyget_debug ();
 extern int yylex ();
 %}
@@ -37,7 +33,6 @@ extern int yylex ();
 %type<sval> block_comment_text
 
  /* assign precedence, later declare has higher precedence */
-%left '\n'
 %left OP_MINUS OP_PLUS
 %left OP_DIV OP_MUL
 %right OP_POW
@@ -72,13 +67,6 @@ line_comment_text
 
 block_comment_text
 	: /* empty */ { $$ = ""; }
-	| block_comment_text '\n' block_comment_text { 
-		char *full_text = (char *) calloc ( strlen($1) + 1 + strlen($3) + 1, sizeof(char) );
-		strncpy( full_text, $1, strlen($1) );
-		full_text[strlen($1)] = '\n';
-		strncpy( full_text + strlen($1) + 1, $3, strlen($3) );
-		$$ = full_text;
-	}
 	| BLOCK_COMMENT_CONTEXT { $$ = $1; }
 	;
 
@@ -112,3 +100,9 @@ oprand
 	: NUMBER { $$ = $1; }
 
 %%
+
+void yyerror ( const char *msg )
+{
+	fprintf( stderr, "[Error] invalid syntax\n" );
+}
+

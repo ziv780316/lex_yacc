@@ -41,7 +41,7 @@ math_function (?i:(exp|sqrt|log))
 	return MATH_FUNCTION;
 }
 
-<INITIAL,S_BLOCK_COMMENT>"\n" {
+<INITIAL>"\n" {
 	return '\n';
 }
 
@@ -75,7 +75,7 @@ math_function (?i:(exp|sqrt|log))
 	return START_LINE_COMMENT;
 }
 
-<S_LINE_COMMENT>[^\n]* {
+<S_LINE_COMMENT>.* {
 	yylval.sval = strdup( yytext );
 	return LINE_COMMENT_CONTEXT;
 }
@@ -95,29 +95,25 @@ math_function (?i:(exp|sqrt|log))
 	return END_BLOCK_COMMENT;
 }
 
-<S_BLOCK_COMMENT>.+ {
-	char *neddle_addr = strstr( yytext, "*/" );
-	if ( neddle_addr )
+<S_BLOCK_COMMENT>[^\/]+\/ {
+	printf("yytext=%s\n", yytext);
+	if ( '*' == yytext[yyleng - 2] )
 	{
-		int pos = (neddle_addr - yytext);
-		if ( 0 == pos )
-		{
-			// pattern --> */ ...
-			REJECT;
-		}
-		else
-		{
-			// pattern --> .. */ ...
-			yylval.sval = strndup( yytext, pos );
-			yyless( pos );
-		}
+		yylval.sval = strndup( yytext, yyleng - 2 );
+		// return only "*/"
+		yyless( yyleng - 2 );
+		return BLOCK_COMMENT_CONTEXT;
 	}
 	else
 	{
-		yylval.sval = strdup( yytext );
+		// cascate ".../" to next yytext, but next time will not chek ".../" this pattern
+		yymore();
 	}
-	return BLOCK_COMMENT_CONTEXT;
 }
+
+. {
+	fprintf( stderr, "unknown token %s\n", yytext );
+ }
 
 <<EOF>> {
 	yyterminate();
