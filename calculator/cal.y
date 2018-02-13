@@ -36,7 +36,7 @@ extern int yylex ();
 %left OP_MINUS OP_PLUS
 %left OP_DIV OP_MUL
 %right OP_POW
-%precedence OP_UMINUS
+%nonassoc OP_UMINUS
 
 %%
 all_syntax 

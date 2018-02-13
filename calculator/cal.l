@@ -1,4 +1,16 @@
 %{
+#include <readline/readline.h>
+#include <readline/history.h>
+#undef YY_INPUT
+#define YY_INPUT(buf, n_read, max_size) (n_read = input_readline(buf, max_size))
+int input_readline ( char *buf, int max_size );
+
+/* for auto-completion */
+void initialize_readline ();
+char *word_completion ( const char *text, int start, int end );
+char *word_generator ( const char *text, int state );
+char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
+
 #include "cal.y.c"
 %}
 
@@ -96,7 +108,6 @@ math_function (?i:(exp|sqrt|log))
 }
 
 <S_BLOCK_COMMENT>[^\/]+\/ {
-	printf("yytext=%s\n", yytext);
 	if ( '*' == yytext[yyleng - 2] )
 	{
 		yylval.sval = strndup( yytext, yyleng - 2 );
@@ -123,4 +134,74 @@ math_function (?i:(exp|sqrt|log))
 int yywrap ()
 {
 	return 1;
+}
+
+/* gnu readline interface */
+int input_readline ( char *buf, int max_size )
+{
+	if ( feof(yyin) )
+	{
+		return YY_NULL;
+	}	
+	char *line = readline( ">" ); // does not return '\n'
+	if ( !line )
+	{
+		return YY_NULL;
+	}	
+
+	// add '\n' and '\0' 
+	int n_read = strlen( line );
+	if ( n_read > max_size - 2 )
+	{
+		fprintf( stderr, "[Error] read too long line (size=%d)\n", n_read );
+		return YY_NULL;
+	}
+	sprintf( buf, "%s\n", line );
+	add_history( line );
+	free( line );
+
+	return strlen( buf );
+}
+
+void initialize_readline ()
+{
+	rl_readline_name = "calculator";
+	rl_attempted_completion_function = word_completion;
+}
+
+char *word_completion ( const char *text, int start, int end )
+{
+	char **matches = NULL;
+
+	matches = rl_completion_matches( text, word_generator );
+
+	return matches;
+}
+
+char *word_generator ( const char *text, int state )
+{
+	static int list_index;
+	static int len;
+	char *name;
+
+	if ( 0 == state )
+	{
+		/* initialize completion, go to top of list */
+		list_index = 0;
+		len = strlen( text );
+	}
+
+	/* return the next name which partially matches list */
+	while ( name = completion_dict[list_index] )
+	{
+		list_index++;
+
+		if ( 0 == strncmp( name, text, len) )
+		{
+			return strdup( name );
+		}
+	}
+
+	/* no match */
+	return NULL;
 }
