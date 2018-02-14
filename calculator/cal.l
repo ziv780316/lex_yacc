@@ -7,8 +7,9 @@ int input_readline ( char *buf, int max_size );
 
 /* for auto-completion */
 void initialize_readline ();
-char *word_completion ( const char *text, int start, int end );
+char **word_completion ( const char *text, int start, int end );
 char *word_generator ( const char *text, int state );
+char *get_completion_delimiters ();
 char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
 
 #include "cal.y.c"
@@ -167,9 +168,10 @@ void initialize_readline ()
 {
 	rl_readline_name = "calculator";
 	rl_attempted_completion_function = word_completion;
+	rl_completion_word_break_hook = get_completion_delimiters;
 }
 
-char *word_completion ( const char *text, int start, int end )
+char **word_completion ( const char *text, int start, int end )
 {
 	char **matches = NULL;
 
@@ -192,7 +194,7 @@ char *word_generator ( const char *text, int state )
 	}
 
 	/* return the next name which partially matches list */
-	while ( name = completion_dict[list_index] )
+	while ( (name = completion_dict[list_index]) )
 	{
 		list_index++;
 
@@ -204,4 +206,9 @@ char *word_generator ( const char *text, int state )
 
 	/* no match */
 	return NULL;
+}
+
+char *get_completion_delimiters ()
+{
+	return " \t\n\"\\'`@$><=;|&{(.";
 }
