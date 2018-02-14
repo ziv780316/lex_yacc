@@ -1,6 +1,5 @@
 1
 
-abc
 //
 // test
 1 + 2 * 3 // test
@@ -14,3 +13,10 @@ abc
 1 /* test */
 1 /* te
 st /slash */ 2 /**/
+
+var1 = 10 * 2
+var2 = 5
+var1 = var1 + var2
+var1
+
+"123" + "456"
