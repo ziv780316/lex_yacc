@@ -18,7 +18,7 @@ CXX       = g++
 FLEX      = flex 
 FLEX_FLAG = 
 BISON     = bison 
-LINKER    = ${CC}
+LINKER    = ${CXX}
 CFLAGS    = -O2 -Wfatal-errors -Wall -std=gnu99 ${DEFINES} -fPIC
 CXXFLAGS  = -O2 -Wfatal-errors -Wall -std=c++11 ${DEFINES} -fPIC
 LIBS      = -lm -L/usr/lib/x86_64-linux-gnu -lfl -lreadline
@@ -31,7 +31,7 @@ MOVE      = mv -f
 BIN_DIR          = bin
 UNIT_TEST_DIR    = unit_test
 LIBRARY_DIR      = library
-CALCULATOR_OBJ   = cal.l.o main.o
+CALCULATOR_OBJ   = cal.l.o main.o hash.o
 LEX_YACC_TARGET  = cal.l.c cal.y.c
 UNIT_TEST_OBJ    = 
 SO_TARGET        =

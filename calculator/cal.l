@@ -25,8 +25,11 @@ char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
 %x S_LINE_COMMENT
 %x S_BLOCK_COMMENT
 
+identifier [a-zA-Z][a-zA-Z0-9_]*
+string \"[^\"]*\"
 number [0-9]+("."[0-9])?
 while_space [ \t]+
+op_assign =
 op_plus \+
 op_minus \-
 op_mul \*
@@ -37,12 +40,19 @@ block_comment_start \/\*
 block_comment_end \*\/
 
  /* ?i: means case insensitive */
-math_function (?i:(exp|sqrt|log))
+math_function (?i:(exp|sqrt|log|log2))
 
 %%
 {number} {
 	sscanf( yytext, "%lf", &(yylval.dval) ); 
 	return NUMBER;
+}
+
+{string} {
+	char *str = (char *) calloc ( strlen(yytext) - 1, sizeof(char) );
+	strncpy( str, yytext + 1, strlen(yytext + 1) - 1 );
+	yylval.sval = str;
+	return STRING;
 }
 
 {while_space} {
@@ -54,12 +64,21 @@ math_function (?i:(exp|sqrt|log))
 	return MATH_FUNCTION;
 }
 
+{identifier} {
+	yylval.sval = strdup( yytext );
+	return IDENTIFIER;
+}
+
 <INITIAL>"\n" {
 	return '\n';
 }
 
 [()] {
 	return yytext[0];
+}
+
+{op_assign} {
+	return OP_ASSIGN;
 }
 
 {op_plus} {
