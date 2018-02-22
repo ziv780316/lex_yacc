@@ -1,6 +1,7 @@
 %{
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <errno.h>
 #undef YY_INPUT
 #define YY_INPUT(buf, n_read, max_size) (n_read = input_readline(buf, max_size))
 int input_readline ( char *buf, int max_size );
@@ -24,6 +25,7 @@ char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
  /* exclusive condition state */
 %x S_LINE_COMMENT
 %x S_BLOCK_COMMENT
+%x S_INCLUDE
 
 identifier [a-zA-Z][a-zA-Z0-9_]*
 type (double|string)
@@ -39,6 +41,7 @@ op_pow \^
 line_comment \/\/
 block_comment_start \/\*
 block_comment_end \*\/
+include load
 
  /* ?i: means case insensitive */
 math_function (?i:(exp|sqrt|log|log2))
@@ -56,13 +59,35 @@ math_function (?i:(exp|sqrt|log|log2))
 	return STRING;
 }
 
+<S_INCLUDE>{string} {
+	char name[BUFSIZ] = {0};
+	strncpy( name, yytext + 1, strlen(yytext + 1) - 1 );
+	yy_pop_state();
+
+	// open file and change buffer
+	FILE *fin = fopen( name, "r" );
+	if ( !fin )
+	{
+		fprintf( stderr, "[Error] open file '%s' fail --> %s\n", name, strerror(errno) );
+	}
+	else
+	{
+		YY_BUFFER_STATE buf_st = yy_create_buffer( fin, YY_BUF_SIZE );
+		yypush_buffer_state( buf_st );
+	}
+}
+
+{include} {
+	yy_push_state( S_INCLUDE );
+}
+
 {type} {
 	yylval.sval = strdup( yytext );
 	return TYPE;
 }
 
 {while_space} {
-	/* ignore */
+	// ignore
 }
 
 {math_function} {
@@ -153,7 +178,11 @@ math_function (?i:(exp|sqrt|log|log2))
  }
 
 <<EOF>> {
-	yyterminate();
+	yypop_buffer_state();
+	if ( !YY_CURRENT_BUFFER )
+	{
+		yyterminate();
+	}
 }
 %%
 
@@ -169,22 +198,34 @@ int input_readline ( char *buf, int max_size )
 	{
 		return YY_NULL;
 	}	
-	char *line = readline( ">" ); // does not return '\n'
-	if ( !line )
+	char *line;
+	if ( STDIN_FILENO == fileno( yyin ) )
 	{
-		return YY_NULL;
-	}	
+		line = readline( ">" ); // does not return '\n'
 
-	// add '\n' and '\0' 
-	int n_read = strlen( line );
-	if ( n_read > max_size - 2 )
-	{
-		fprintf( stderr, "[Error] read too long line (size=%d)\n", n_read );
-		return YY_NULL;
+		if ( !line )
+		{
+			return YY_NULL;
+		}	
+
+		// add '\n' and '\0' 
+		int n_read = strlen( line );
+		if ( n_read > max_size - 2 )
+		{
+			fprintf( stderr, "[Error] read too long line (size=%d)\n", n_read );
+			return YY_NULL;
+		}
+		sprintf( buf, "%s\n", line );
+		add_history( line );
+		free( line );
 	}
-	sprintf( buf, "%s\n", line );
-	add_history( line );
-	free( line );
+	else
+	{
+		if ( 0 == fread( buf, sizeof(char), max_size, yyin ) )
+		{
+			return YY_NULL;
+		}	
+	}
 
 	return strlen( buf );
 }

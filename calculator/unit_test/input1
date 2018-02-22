@@ -27,3 +27,6 @@ c = b + "123"
 
 double c
 c + 1
+
+load "input2"
+3 * 2
