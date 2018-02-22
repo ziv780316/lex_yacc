@@ -26,6 +26,7 @@ char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
 %x S_BLOCK_COMMENT
 
 identifier [a-zA-Z][a-zA-Z0-9_]*
+type (double|string)
 string \"[^\"]*\"
 number [0-9]+("."[0-9])?
 while_space [ \t]+
@@ -53,6 +54,11 @@ math_function (?i:(exp|sqrt|log|log2))
 	strncpy( str, yytext + 1, strlen(yytext + 1) - 1 );
 	yylval.sval = str;
 	return STRING;
+}
+
+{type} {
+	yylval.sval = strdup( yytext );
+	return TYPE;
 }
 
 {while_space} {

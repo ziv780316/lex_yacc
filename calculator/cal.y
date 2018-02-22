@@ -17,6 +17,7 @@ extern int yylex ();
 
 %token<dval> NUMBER
 %token<sval> IDENTIFIER
+%token<sval> TYPE
 %token<sval> MATH_FUNCTION
 %token<sval> STRING
 %token<sval> OP_ASSIGN
@@ -53,6 +54,7 @@ all_syntax
 syntax
 	: '\n'
 	| comment
+	| declaration
 	| expression comment 
 	{
 		if ( NODE_DOUBLE == $1.type )
@@ -209,6 +211,48 @@ oprand
 	}
 	;
 
+declaration
+	: TYPE namelist
+	;
+
+namelist
+	: IDENTIFIER
+	{
+		if ( 0 == strcmp( "double", $<sval>0 ) )
+		{
+			Node tmp_node = { .type = NODE_DOUBLE, .val = { .dval = 0 } };
+			symbol_table_insert( $1, tmp_node );
+		}
+		else if ( 0 == strcmp( "string", $<sval>0 ) )
+		{
+			Node tmp_node = { .type = NODE_STRING, .val = { .sval = "" } };
+			symbol_table_insert( $1, tmp_node );
+		}
+		else
+		{
+			fprintf( stderr, "[Error] unknown type %s\n", $<sval>0 );
+			abort();
+		}
+	}
+	| namelist IDENTIFIER
+	{
+		if ( 0 == strcmp( "double", $<sval>0 ) )
+		{
+			Node tmp_node = { .type = NODE_DOUBLE, .val = { .dval = 0 } };
+			symbol_table_insert( $2, tmp_node );
+		}
+		else if ( 0 == strcmp( "string", $<sval>0 ) )
+		{
+			Node tmp_node = { .type = NODE_STRING, .val = { .sval = "" } };
+			symbol_table_insert( $2, tmp_node );
+		}
+		else
+		{
+			fprintf( stderr, "[Error] unknown type %s\n", $<sval>0 );
+			abort();
+		}
+	}
+	;
 %%
 
 void yyerror ( const char *msg )
