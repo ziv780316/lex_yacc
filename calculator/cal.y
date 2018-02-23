@@ -59,7 +59,7 @@ syntax
 	{
 		if ( NODE_DOUBLE == $1.type )
 		{
-			printf( " = %lf\n", $1.val.dval ); 
+			printf( " = %.10lf\n", $1.val.dval ); 
 		}
 		else
 		{
@@ -70,7 +70,7 @@ syntax
 	{
 		if ( NODE_DOUBLE == $1.type )
 		{
-			printf( " = %lf\n", $1.val.dval ); 
+			printf( " = %.10lf\n", $1.val.dval ); 
 		}
 		else
 		{
