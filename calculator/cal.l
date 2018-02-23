@@ -30,7 +30,7 @@ char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
 identifier [a-zA-Z][a-zA-Z0-9_]*
 type (double|string)
 string \"[^\"]*\"
-number [0-9]+("."[0-9])?
+number [0-9]+"."?[0-9]*([eE][+-]?[0-9]+)?
 while_space [ \t]+
 op_assign =
 op_plus \+
