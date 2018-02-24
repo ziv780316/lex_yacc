@@ -13,6 +13,8 @@ char *word_generator ( const char *text, int state );
 char *get_completion_delimiters ();
 char *completion_dict[] = { "string", "double", "exp", "sqrt", "log", "log2", NULL };
 
+char current_line_buf[YY_BUF_SIZE] = {0};
+
 #include "cal.y.c"
 %}
 
@@ -31,7 +33,7 @@ char *completion_dict[] = { "string", "double", "exp", "sqrt", "log", "log2", NU
 
 identifier [a-zA-Z][a-zA-Z0-9_]*
 type (double|string)
-string \"[^\"]*\"
+string \"[^\"\n]*\"
 number [0-9]+"."?[0-9]*([eE][+-]?0?[0-9]+)?
 while_space [ \t]+
 op_assign =
@@ -45,10 +47,18 @@ block_comment_start \/\*
 block_comment_end \*\/
 include load
 
+ /* error handling */
+unterminated_string \"[^\"\n]*$
+
  /* ?i: means case insensitive */
 math_function (?i:(exp|sqrt|log|log2))
 
 %%
+<*>^.*/\n {
+	strcpy( current_line_buf, yytext );
+	REJECT;	
+}
+
 {number} {
 	sscanf( yytext, "%lf", &(yylval.dval) ); 
 	return NUMBER;
@@ -57,6 +67,14 @@ math_function (?i:(exp|sqrt|log|log2))
 {string} {
 	char *str = (char *) calloc ( strlen(yytext) - 1, sizeof(char) );
 	strncpy( str, yytext + 1, strlen(yytext + 1) - 1 );
+	yylval.sval = str;
+	return STRING;
+}
+
+{unterminated_string} {
+	fprintf( stderr, "[Warning] line %d: unterminated string %s\n", yylineno, yytext );
+	char *str = (char *) calloc ( strlen(yytext), sizeof(char) );
+	strncpy( str, yytext + 1, strlen(yytext + 1) );
 	yylval.sval = str;
 	return STRING;
 }
@@ -279,4 +297,10 @@ char *word_generator ( const char *text, int state )
 char *get_completion_delimiters ()
 {
 	return " \t\n\"\\'`@$><=;|&{(.";
+}
+
+/* yy function */
+void yyerror ( const char *msg )
+{
+	fprintf( stderr, "[Error] line %d: %s --> %s\n", yylineno - 1, msg, current_line_buf );
 }

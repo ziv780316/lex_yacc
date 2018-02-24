@@ -244,8 +244,3 @@ namelist
 	;
 %%
 
-void yyerror ( const char *msg )
-{
-	fprintf( stderr, "[Error] line %d: %s at token '%s'\n", yylineno - 1, msg, yytext );
-}
-
