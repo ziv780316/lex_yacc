@@ -52,21 +52,9 @@ all_syntax
 	;
 
 syntax
-	: '\n'
-	| comment
-	| declaration
+	: comment
+	| declaration comment 
 	| expression comment 
-	{
-		if ( NODE_DOUBLE == $1.type )
-		{
-			printf( " = %.10lf\n", $1.val.dval ); 
-		}
-		else
-		{
-			printf( " = %s\n", $1.val.sval ); 
-		}
-	}
-	| expression '\n' 
 	{
 		if ( NODE_DOUBLE == $1.type )
 		{
@@ -80,7 +68,8 @@ syntax
 	;
 
 comment
-	: START_LINE_COMMENT line_comment_text END_LINE_COMMENT 
+	: '\n'
+	| START_LINE_COMMENT line_comment_text END_LINE_COMMENT 
 	{
 		/* fprintf( stderr, "skip line comment '%s'\n", $2 ); */
 	}

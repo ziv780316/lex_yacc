@@ -110,6 +110,5 @@ cscope:
 
 qa:
 	cd $(UNIT_TEST_DIR);\
-	../bin/$(CALCULATOR_TARGET) < input1;\
-	../bin/$(CALCULATOR_TARGET) < input2;
+	../bin/$(CALCULATOR_TARGET) < input1;
 
