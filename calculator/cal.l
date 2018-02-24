@@ -11,7 +11,7 @@ void initialize_readline ();
 char **word_completion ( const char *text, int start, int end );
 char *word_generator ( const char *text, int state );
 char *get_completion_delimiters ();
-char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
+char *completion_dict[] = { "string", "double", "exp", "sqrt", "log", "log2", NULL };
 
 #include "cal.y.c"
 %}
@@ -21,6 +21,8 @@ char *completion_dict[] = { "exp", "sqrt", "log", "log2", NULL };
 
  /* enable yy_push_state, yy_pop_state and yy_top_state */
 %option stack
+
+%option yylineno
 
  /* exclusive condition state */
 %x S_LINE_COMMENT
