@@ -52,7 +52,12 @@ all_syntax
 	;
 
 syntax
-	: comment
+	: error
+	{
+		yyclearin; // yychar = YYEMPTY, means discard all token
+		yyerrok; // set yyerrstatus = 0, continue yyparse
+	}
+	| comment
 	| declaration comment 
 	| expression comment 
 	{
@@ -194,8 +199,10 @@ oprand
 		}
 		else
 		{
-			fprintf( stderr, "[Error] unknown symbol '%s'\n", $1 );
-			abort();
+			char err_msg[BUFSIZ] = {0};
+			sprintf( err_msg, "unknown symbol %s", $1 );
+			yyerror( err_msg );
+			YYERROR;
 		}
 	}
 	;
@@ -217,11 +224,6 @@ namelist
 			Node tmp_node = { .type = NODE_STRING, .val = { .sval = "" } };
 			symbol_table_insert( $1, tmp_node );
 		}
-		else
-		{
-			fprintf( stderr, "[Error] unknown type %s\n", $<sval>0 );
-			abort();
-		}
 	}
 	| namelist IDENTIFIER
 	{
@@ -234,11 +236,6 @@ namelist
 		{
 			Node tmp_node = { .type = NODE_STRING, .val = { .sval = "" } };
 			symbol_table_insert( $2, tmp_node );
-		}
-		else
-		{
-			fprintf( stderr, "[Error] unknown type %s\n", $<sval>0 );
-			abort();
 		}
 	}
 	;

@@ -194,7 +194,7 @@ math_function (?i:(exp|sqrt|log|log2))
 }
 
 . {
-	fprintf( stderr, "unknown token %s\n", yytext );
+	fprintf( stderr, "[Error] unknown token %s\n", yytext );
  }
 
 <<EOF>> {
@@ -302,5 +302,5 @@ char *get_completion_delimiters ()
 /* yy function */
 void yyerror ( const char *msg )
 {
-	fprintf( stderr, "[Error] line %d: %s --> %s\n", yylineno - 1, msg, current_line_buf );
+	fprintf( stderr, "[Error] line %d: %s --> %s\n", yylineno - 1, current_line_buf, msg );
 }
