@@ -3,7 +3,7 @@
 #=================================================
 -include dependency.mk # - do not abort if file does not exist
 
-.PHONY: create_dir depend default all clean cscope # specify phony target, do not generate file as target name
+.PHONY: create_dir depend default all clean cscope qa# specify phony target, do not generate file as target name
 
 .DEFAULT_GOAL=default # specify default target if there is no target specified
 
