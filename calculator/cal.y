@@ -33,6 +33,9 @@ extern int yylex ();
 %token<sval> BLOCK_COMMENT_CONTEXT
 %token<sval> END_BLOCK_COMMENT
 
+ /* never refer this token, return from yylex use to cause yyparse goto error status */ 
+%token<sval> ERROR 
+
 %type<nval> expression
 %type<nval> oprand
 %type<sval> line_comment_text
@@ -52,12 +55,13 @@ all_syntax
 	;
 
 syntax
-	: error
+	: comment
+	/* resume parse after finish 'comment' reading (first rule or token after error) */
+	| error comment
 	{
 		yyclearin; // yychar = YYEMPTY, means discard all token
 		yyerrok; // set yyerrstatus = 0, continue yyparse
 	}
-	| comment
 	| declaration comment 
 	| expression comment 
 	{
@@ -76,11 +80,11 @@ comment
 	: '\n'
 	| START_LINE_COMMENT line_comment_text END_LINE_COMMENT 
 	{
-		/* fprintf( stderr, "skip line comment '%s'\n", $2 ); */
+		/* fprintf( stdout, "skip line comment '%s'\n", $2 ); */
 	}
 	| START_BLOCK_COMMENT block_comment_text END_BLOCK_COMMENT 
 	{
-		/* fprintf( stderr, "skip block comment '%s'\n", $2 ); */
+		/* fprintf( stdout, "skip block comment '%s'\n", $2 ); */
 	}
 	;
 

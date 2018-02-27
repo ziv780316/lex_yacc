@@ -110,5 +110,5 @@ cscope:
 
 qa:
 	cd $(UNIT_TEST_DIR);\
-	../bin/$(CALCULATOR_TARGET) < input1;
+	echo "`../bin/$(CALCULATOR_TARGET) < input1`" > ../output;
 

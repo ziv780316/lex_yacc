@@ -34,7 +34,7 @@ char current_line_buf[YY_BUF_SIZE] = {0};
 identifier [a-zA-Z][a-zA-Z0-9_]*
 type (double|string)
 string \"[^\"\n]*\"
-number [0-9]+"."?[0-9]*([eE][+-]?0?[0-9]+)?
+number [0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?
 while_space [ \t]+
 op_assign =
 op_plus \+
@@ -72,7 +72,7 @@ math_function (?i:(exp|sqrt|log|log2))
 }
 
 {unterminated_string} {
-	fprintf( stderr, "[Warning] line %d: unterminated string %s\n", yylineno, yytext );
+	fprintf( stdout, "[Warning] line %d: unterminated string %s\n", yylineno, yytext );
 	char *str = (char *) calloc ( strlen(yytext), sizeof(char) );
 	strncpy( str, yytext + 1, strlen(yytext + 1) );
 	yylval.sval = str;
@@ -88,7 +88,7 @@ math_function (?i:(exp|sqrt|log|log2))
 	FILE *fin = fopen( name, "r" );
 	if ( !fin )
 	{
-		fprintf( stderr, "[Error] open file '%s' fail --> %s\n", name, strerror(errno) );
+		fprintf( stdout, "[Error] open file '%s' fail --> %s\n", name, strerror(errno) );
 	}
 	else
 	{
@@ -194,7 +194,8 @@ math_function (?i:(exp|sqrt|log|log2))
 }
 
 . {
-	fprintf( stderr, "[Error] unknown token %s\n", yytext );
+	fprintf( stdout, "[Error] unknown token %s\n", yytext );
+	return ERROR;
  }
 
 <<EOF>> {
@@ -232,7 +233,7 @@ int input_readline ( char *buf, int max_size )
 		int n_read = strlen( line );
 		if ( n_read > max_size - 2 )
 		{
-			fprintf( stderr, "[Error] read too long line (size=%d)\n", n_read );
+			fprintf( stdout, "[Error] read too long line (size=%d)\n", n_read );
 			return YY_NULL;
 		}
 		sprintf( buf, "%s\n", line );
@@ -302,5 +303,5 @@ char *get_completion_delimiters ()
 /* yy function */
 void yyerror ( const char *msg )
 {
-	fprintf( stderr, "[Error] line %d: %s --> %s\n", yylineno - 1, current_line_buf, msg );
+	fprintf( stdout, "[Error] line %d: %s --> %s\n", yylineno - 1, current_line_buf, msg );
 }
