@@ -112,6 +112,10 @@ void parse_cmd_options ( int argc, char **argv )
 				{
 					g_opts.input_format = RAW_ASCII;
 				}
+				else if ( is_str_nocase_match( "mm", optarg ) )
+				{
+					g_opts.input_format = MM_ASCII;
+				}
 				else
 				{
 					fprintf( stderr, "[Error] unknown raw-data format %s\n", optarg );
@@ -120,7 +124,11 @@ void parse_cmd_options ( int argc, char **argv )
 				break;
 
 			case 'w':
-				if ( is_str_nocase_match( "spice3", optarg ) )
+				if ( is_str_nocase_match( "ascii", optarg ) )
+				{
+					g_opts.output_format = RAW_ASCII;
+				}
+				else if ( is_str_nocase_match( "spice3", optarg ) )
 				{
 					g_opts.output_format = WAVEFORM_SPICE3;
 				}

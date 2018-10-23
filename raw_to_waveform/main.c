@@ -7,9 +7,13 @@
 #include "opts.h"
 
 extern bool ascii_to_spice3 ( FILE *fin, FILE *fout, bool debug );
+extern bool mm_to_ascii ( FILE *fin, FILE *fout, bool debug );
 extern int ascii_to_spice3_yylex (void);
+extern int mm_to_ascii_yylex (void);
 extern FILE *ascii_to_spice3_yyin;
 extern FILE *ascii_to_spice3_yyout;
+extern FILE *mm_to_ascii_yyin;
+extern FILE *mm_to_ascii_yyout;
 
 int main ( int argc, char **argv )
 {
@@ -65,6 +69,21 @@ int main ( int argc, char **argv )
 				}
 				break;
 
+			case MM_ASCII:
+				// convert matrix market data into raw data
+				switch ( output_format )
+				{
+					case WAVEFORM_ASCII:
+						convert_success = mm_to_ascii ( fin, fout, debug );
+						break;
+
+					default:
+						fprintf( stderr, "[Error] unknown output format %d\n", output_format );
+						abort();
+						break;
+				}
+				break;
+
 			default:
 				fprintf( stderr, "[Error] unknown input format %d\n", input_format );
 				abort();
@@ -93,6 +112,18 @@ bool ascii_to_spice3 ( FILE *fin, FILE *fout, bool debug )
 	ascii_to_spice3_yyout = fout;
 
 	ascii_to_spice3_yylex ();
+
+	return convert_success;
+}
+
+bool mm_to_ascii ( FILE *fin, FILE *fout, bool debug )
+{
+	bool convert_success = true;
+
+	mm_to_ascii_yyin  = fin;
+	mm_to_ascii_yyout = fout;
+
+	mm_to_ascii_yylex ();
 
 	return convert_success;
 }

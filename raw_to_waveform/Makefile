@@ -31,7 +31,7 @@ MOVE      = mv -f
 BIN_DIR          = bin
 UNIT_TEST_DIR    = unit_test
 LIBRARY_DIR      = library
-LEX_YECC_TARGET  = ascii_to_spice3.l.c 
+LEX_YECC_TARGET  = ascii_to_spice3.l.c mm_to_ascii.l.c
 LEX_YECC_OBJ     = $(LEX_YECC_TARGET:.c=.o)
 PARSER_OBJ       = main.o opts.o 
 PARSER_TARGET    = raw_to_waveform

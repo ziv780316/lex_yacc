@@ -2,10 +2,12 @@
 #define OPTS_H
 
 typedef enum {
-	RAW_ASCII
+	RAW_ASCII,
+	MM_ASCII
 } raw_type;
 
 typedef enum {
+	WAVEFORM_ASCII,
 	WAVEFORM_SPICE3
 } waveform_type;
 
