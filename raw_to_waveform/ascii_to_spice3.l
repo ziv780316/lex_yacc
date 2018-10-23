@@ -197,12 +197,6 @@ int yywrap ()
 	return 1;
 }
 
-/* yy function */
-void yyerror ( const char *msg )
-{
-	fprintf( stdout, "[Error] line %d: %s\n", yylineno - 1, msg );
-}
-
 static void dump_spice3_waveform_header ()
 {
 	int i;
