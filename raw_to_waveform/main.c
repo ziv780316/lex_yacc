@@ -9,6 +9,7 @@
 extern bool ascii_to_spice3 ( FILE *fin, FILE *fout, bool debug );
 extern int ascii_to_spice3_yylex (void);
 extern FILE *ascii_to_spice3_yyin;
+extern FILE *ascii_to_spice3_yyout;
 
 int main ( int argc, char **argv )
 {
@@ -86,13 +87,12 @@ int main ( int argc, char **argv )
 
 bool ascii_to_spice3 ( FILE *fin, FILE *fout, bool debug )
 {
-	bool continue_parse = true;
 	bool convert_success = true;
-	ascii_to_spice3_yyin = fin;
-	while ( continue_parse )
-	{
-		continue_parse = ascii_to_spice3_yylex ();
-	}
+
+	ascii_to_spice3_yyin  = fin;
+	ascii_to_spice3_yyout = fout;
+
+	ascii_to_spice3_yylex ();
 
 	return convert_success;
 }
