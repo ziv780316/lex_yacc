@@ -22,15 +22,22 @@ opt_t g_opts = {
 void show_help ()
 {
 	printf( "*------------------------------------*\n" 
-		"*   raw-data to waveform converter   *\n"
+		"*      universal file converter      *\n"
 		"*------------------------------------*\n" 
 		"[Options]\n"
 		"  -h  =>  show help\n"
 		"  -d  =>  enable debug information\n"
-		"  -i | --input =>  specify input raw-data file name\n"
-		"  -o | --output=>  specify output output waveform file name\n"
-		"  -r | --raw_data_format =>  specify raw-data file format\n"
-		"  -w | --waveform_format =>  specify waveform file format\n"
+		"  -i | --input  =>  specify input file name\n"
+		"  -o | --output =>  specify converted file name\n"
+		"  -r | --input_format  =>  specify input file format\n"
+		"  -f | --output_format =>  specify converted file format\n"
+		"\n"
+		"* support format:\n"
+		"   raw_ascii\n"
+		"   mm_rhs_list\n"
+		"   mm_sparse\n"
+		"   matrix_dense_ascii\n"
+		"   waveform_spice3\n"
 		);
 }
 
@@ -72,15 +79,15 @@ void parse_cmd_options ( int argc, char **argv )
 			// setting options
 			{"input_file", required_argument, 0, 'i'},
 			{"output_file", required_argument, 0, 'o'},
-			{"raw_data_format", required_argument, 0, 'r'},
-			{"waveform_format", required_argument, 0, 'w'},
+			{"input_format", required_argument, 0, 'r'},
+			{"output_format", required_argument, 0, 'f'},
 			{0, 0, 0, 0}
 		};
 
 		// getopt_long stores the option index here
 		int option_index = 0;
 
-		c = getopt_long( argc, argv, "hdi:o:r:w:", long_options, &option_index );
+		c = getopt_long( argc, argv, "hdi:o:r:f:", long_options, &option_index );
 
 		// detect the end of the options
 		if ( -1 == c )
@@ -108,33 +115,43 @@ void parse_cmd_options ( int argc, char **argv )
 				break;
 
 			case 'r':
-				if ( is_str_nocase_match( "ascii", optarg ) )
+				g_opts.input_format_name = optarg;
+				if ( is_str_nocase_match( "raw_ascii", optarg ) )
 				{
 					g_opts.input_format = RAW_ASCII;
 				}
-				else if ( is_str_nocase_match( "mm", optarg ) )
+				else if ( is_str_nocase_match( "mm_rhs_list", optarg ) )
 				{
-					g_opts.input_format = MM_ASCII;
+					g_opts.input_format = MM_RHS_LIST;
+				}
+				else if ( is_str_nocase_match( "mm_sparse", optarg ) )
+				{
+					g_opts.input_format = MM_SPARSE;
 				}
 				else
 				{
-					fprintf( stderr, "[Error] unknown raw-data format %s\n", optarg );
+					fprintf( stderr, "[Error] unknown input format %s\n", optarg );
 					abort();
 				}
 				break;
 
-			case 'w':
-				if ( is_str_nocase_match( "ascii", optarg ) )
+			case 'f':
+				g_opts.output_format_name = optarg;
+				if ( is_str_nocase_match( "raw_ascii", optarg ) )
 				{
 					g_opts.output_format = RAW_ASCII;
 				}
-				else if ( is_str_nocase_match( "spice3", optarg ) )
+				else if ( is_str_nocase_match( "matrix_dense_ascii", optarg ) )
+				{
+					g_opts.output_format = MATRIX_DENSE_ASCII;
+				}
+				else if ( is_str_nocase_match( "waveform_spice3", optarg ) )
 				{
 					g_opts.output_format = WAVEFORM_SPICE3;
 				}
 				else
 				{
-					fprintf( stderr, "[Error] unknown waveform format %s\n", optarg );
+					fprintf( stderr, "[Error] unknown converted format %s\n", optarg );
 					abort();
 				}
 				break;

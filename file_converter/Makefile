@@ -21,7 +21,7 @@ YACC      = bison -Wall
 YACC_FLAG = 
 LINKER    = $(CC)
 CFLAGS    = $(DEFINES) -O2 -Wfatal-errors -Wall -Wextra -std=gnu99 -fPIC
-LIBS      = -lm -L/usr/lib/x86_64-linux-gnu -lfl -lreadline
+LIBS      = -lm -L/usr/lib/x86_64-linux-gnu -lfl 
 INCLUDE   = -I./include
 MOVE      = mv -f
 
@@ -31,10 +31,10 @@ MOVE      = mv -f
 BIN_DIR          = bin
 UNIT_TEST_DIR    = unit_test
 LIBRARY_DIR      = library
-LEX_YECC_TARGET  = ascii_to_spice3.l.c mm_to_ascii.l.c
+LEX_YECC_TARGET  = ascii_to_spice3.l.c mm_rhs_to_ascii.l.c
 LEX_YECC_OBJ     = $(LEX_YECC_TARGET:.c=.o)
 PARSER_OBJ       = main.o opts.o 
-PARSER_TARGET    = raw_to_waveform
+PARSER_TARGET    = uconverter
 
 #=================================================
 # Compile implicit rules

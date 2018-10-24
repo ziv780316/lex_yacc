@@ -3,20 +3,20 @@
 
 typedef enum {
 	RAW_ASCII,
-	MM_ASCII
-} raw_type;
-
-typedef enum {
-	WAVEFORM_ASCII,
+	MM_RHS_LIST,  // matrix-market format RHS
+	MM_SPARSE,    // matrix-market format sparse matrix
+	MATRIX_DENSE_ASCII, 
 	WAVEFORM_SPICE3
-} waveform_type;
+} file_format;
 
 typedef struct
 {
 	char *input_file;
 	char *output_file;
-	raw_type input_format;
-	waveform_type output_format;
+	char *input_format_name;
+	char *output_format_name;
+	file_format input_format;
+	file_format output_format;
 	bool debug;
 } opt_t;
 
