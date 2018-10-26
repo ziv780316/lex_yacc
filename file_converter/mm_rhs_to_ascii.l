@@ -15,10 +15,7 @@
 static char **node_names = NULL;
 static int node_count = 0; 
 static int data_length = 0; 
-
-static char *first_file_name = NULL;
-static FILE **fin_stack = NULL;
-static int fin_top = 0;
+static int count = 0;
 
 %}
  /****************************************************************/
@@ -30,6 +27,9 @@ static int fin_top = 0;
 
  /* use yyget_debug() to check debug flag, equal to flex option -d */ 
  /* %option debug */
+
+ /* suppress unmatchd rule default echo */
+%option nodefault
 
  /* change prefix */
 %option prefix="mm_rhs_to_ascii_yy"
@@ -47,9 +47,10 @@ static int fin_top = 0;
 %x S_COUNT_DATA
 %x S_READ_NODE
 %x S_READ_DATA
+%x S_READ_FILE
 
  /* pattern varialbles (use '()' for portable)*/
-identifier ([a-zA-Z][a-zA-Z0-9_\.:#]*)
+identifier ([a-zA-Z0-9_\.:#]+)
 file_name ([a-zA-Z0-9_\.:#@\-]+)
 number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
 while_space ([ \t]+)
@@ -58,18 +59,29 @@ eol (\r?\n)
 
 %%
  /* local varialbe in yylex */
- int ival = 0;
+ int ival;
  double dval;
+ char *sval;
+ YY_BUFFER_STATE buf_st;
 
  /****************************************************************/
  /*                count varialbles and points                   */
  /****************************************************************/
 {file_name} {
-	++data_length;
-	if ( !first_file_name )
+	if ( 0 == data_length )
 	{
-		first_file_name = yytext;
+		FILE *fin = fopen( yytext, "r" );;
+		if ( !fin )
+		{
+			fprintf( stderr, "[Error] open input file '%s' fail -> %s\n", yytext, strerror(errno) );
+			abort();
+		}
+
+		buf_st = yy_create_buffer( fin, YY_BUF_SIZE );
+		yypush_buffer_state( buf_st );
+		BEGIN S_COUNT_NODE;
 	}
+	++data_length;
 }
 
 {while_space}|{eol} {
@@ -82,7 +94,7 @@ eol (\r?\n)
 	abort();
 }
 
-<S_COUNT_NODE>{while_space}+node_name={number} {
+<S_COUNT_NODE>{while_space}+node_name={identifier} {
 	++node_count;
 }
 
@@ -93,47 +105,51 @@ eol (\r?\n)
  /****************************************************************/
  /*                      read raw data                           */
  /****************************************************************/
-<S_READ_DATA>{configure_start} {
-	yy_push_state( S_READ_NODE );
-	node_names = (char *) malloc ( sizeof(char *) * node_count );
-	ival = 0;
+<S_READ_FILE>{file_name} {
+	FILE *fin = fopen( yytext, "r" );;
+	if ( !fin )
+	{
+		fprintf( stderr, "[Error] open input file '%s' fail -> %s\n", yytext, strerror(errno) );
+		abort();
+	}
+
+	buf_st = yy_create_buffer( fin, YY_BUF_SIZE );
+	yypush_buffer_state( buf_st );
+	BEGIN S_READ_DATA;
+
+	fprintf( yyout, "%d ", count );
 }
 
-<S_READ_DATA>{number} {
-	sscanf( yytext, "%lf", &dval ); 
-	fwrite( (void *)&dval, sizeof(double), 1, yyout );
-}
-
-<S_READ_DATA>{while_space}|{eol} {
+<S_READ_FILE>{while_space}|{eol} {
 	/* ignore */
 }
 
  /* exception */
-<S_READ_DATA>. {
-	fprintf( stderr, "[Error] S_READ_DATA unknown token='%s' line=%d\n", yytext, yylineno );
+<S_READ_FILE>. {
+	fprintf( stderr, "[Error] INITIAL unknown token='%s' line=%d\n", yytext, yylineno );
 	abort();
 }
 
-<S_READ_NODE>{identifier} {
-	node_names[ival] = strdup( yytext );
-	++ival;
+<S_READ_NODE>{while_space}+node_name={identifier} {
+	sval = strstr( yytext, "=" );
+	++sval;
+	node_names[count] = strdup( sval );
+	++count;
 }
 
-<S_READ_NODE>{while_space} {
+<S_READ_NODE>.|{eol} {
 	/* ignore */
 }
 
-<S_READ_NODE>{eol} {
-	assert( (ival == node_count) && "node_count inconsistent" );
-
-	yy_pop_state();
-	yy_push_state( S_READ_DATA );
+<S_READ_DATA>{while_space}+xcur={number} {
+	sval = strstr( yytext, "=" );
+	++sval;
+	sscanf( sval, "%lf", &dval ); 
+	fprintf( yyout, "%.10e ", dval );
 }
 
- /* exception */
-<S_READ_NODE>. {
-	fprintf( stderr, "[Error] S_READ_NODE unknown token='%s' line=%d\n", yytext, yylineno );
-	abort();
+<S_READ_DATA>.|{eol} {
+	/* ignore */
 }
 
 %%
@@ -151,51 +167,55 @@ int yywrap ()
 {
 	if ( INITIAL == YYSTATE )
 	{
-		yylineno = 0;
-		BEGIN S_COUNT_NODE;
-
-		fin_stack = (FILE **) malloc ( sizeof(FILE *) * (data_length + 1) ); // +1 means origin fin 
-		fin_stack[fin_top] = yyin;
-		++fin_top;
-		fin_stack[fin_top] = fopen( yytext, "r" );;
-		if ( !fin_stack[fin_top] )
-		{
-			fprintf( stderr, "[Error] open input file '%s' fail -> %s\n", yytext, strerror(errno) );
-			abort();
-		}
-		yyin = fin_stack[fin_top];
-
-		yyrestart( yyin );
-		return 0;
-	}
-	else if ( S_COUNT_NODE == YYSTATE )
-	{
 		printf( "* lex information:\n" );
 		printf( " + number of nodes = %d\n", node_count );
 		printf( " + number of data  = %d\n", data_length );
 
-		/* rewind file pointer */
 		if ( -1 == fseek( yyin, 0, SEEK_SET ) )
 		{
 			fprintf( stderr, "[Error] fseek yyin fail --> %s\n", strerror(errno) );
 			abort();
 		}
-		--fin_top;
-		yyin = fin_stack[fin_top];
+		BEGIN S_READ_FILE;
+		yyrestart( yyin ); /* clear buffer */
+		count = 0;
+		return 0;
+	}
+	else if ( S_COUNT_NODE == YYSTATE )
+	{
+		node_names = (char *) malloc ( sizeof(char *) * node_count );
+		count = 0;
 		if ( -1 == fseek( yyin, 0, SEEK_SET ) )
 		{
 			fprintf( stderr, "[Error] fseek yyin fail --> %s\n", strerror(errno) );
 			abort();
 		}
-		return 1;
+		BEGIN S_READ_NODE;
+		return 0;
+	}
+	else if ( S_READ_NODE == YYSTATE )
+	{
+		/* output raw ascii title */
+		fprintf( yyout, "#" );
+		for ( count = 0; count < node_count; ++count )
+		{
+			fprintf( yyout, " %s", node_names[count] );
+		}
+		fprintf( yyout, "\n" );
 
-		yylineno = 0;
-		BEGIN S_READ_DATA;
-
-		yyrestart( yyin );
+		yypop_buffer_state();
+		BEGIN INITIAL;
 
 		return 0;
 	}
+	else if ( S_READ_DATA == YYSTATE )
+	{
+		fprintf( yyout, "\n" );
+		yypop_buffer_state();
+		BEGIN S_READ_FILE;
+		return 0;
+	}
+
 	return 1;
 }
 

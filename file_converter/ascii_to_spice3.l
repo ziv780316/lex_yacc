@@ -190,7 +190,7 @@ int yywrap ()
 		yylineno = 0;
 		BEGIN S_READ_DATA;
 
-		yyrestart( yyin );
+		yyrestart( yyin ); /* clear additional characters in buffer */
 
 		return 0;
 	}
