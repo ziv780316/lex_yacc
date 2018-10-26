@@ -118,6 +118,7 @@ eol (\r?\n)
 	BEGIN S_READ_DATA;
 
 	fprintf( yyout, "%d ", count );
+	++count;
 }
 
 <S_READ_FILE>{while_space}|{eol} {
@@ -196,7 +197,7 @@ int yywrap ()
 	else if ( S_READ_NODE == YYSTATE )
 	{
 		/* output raw ascii title */
-		fprintf( yyout, "#" );
+		fprintf( yyout, "# iter" );
 		for ( count = 0; count < node_count; ++count )
 		{
 			fprintf( yyout, " %s", node_names[count] );
