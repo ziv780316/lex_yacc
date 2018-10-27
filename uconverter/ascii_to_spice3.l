@@ -48,7 +48,7 @@ static int data_length = 0;
 %x S_READ_DATA
 
  /* pattern varialbles (use '()' for portable)*/
-identifier ([a-zA-Z][a-zA-Z0-9_\.:#]*)
+identifier ([a-zA-Z0-9_\.:#]+)
 number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
 white_space ([ \t]+)
 configure_start (#)
