@@ -53,7 +53,7 @@ static int count = 0;
 identifier ([a-zA-Z0-9_\.:#]+)
 file_name ([a-zA-Z0-9_\.:#@\-]+)
 number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
-while_space ([ \t]+)
+white_space ([ \t]+)
 configure_start (%)
 eol (\r?\n)
 
@@ -84,7 +84,7 @@ eol (\r?\n)
 	++data_length;
 }
 
-{while_space}|{eol} {
+{white_space}|{eol} {
 	/* ignore */
 }
 
@@ -94,7 +94,7 @@ eol (\r?\n)
 	abort();
 }
 
-<S_COUNT_NODE>{while_space}+node_name={identifier} {
+<S_COUNT_NODE>{white_space}+node_name={identifier} {
 	++node_count;
 }
 
@@ -121,7 +121,7 @@ eol (\r?\n)
 	++count;
 }
 
-<S_READ_FILE>{while_space}|{eol} {
+<S_READ_FILE>{white_space}|{eol} {
 	/* ignore */
 }
 
@@ -131,7 +131,7 @@ eol (\r?\n)
 	abort();
 }
 
-<S_READ_NODE>{while_space}+node_name={identifier} {
+<S_READ_NODE>{white_space}+node_name={identifier} {
 	sval = strstr( yytext, "=" );
 	++sval;
 	node_names[count] = strdup( sval );
@@ -142,7 +142,7 @@ eol (\r?\n)
 	/* ignore */
 }
 
-<S_READ_DATA>{while_space}+xcur={number} {
+<S_READ_DATA>{white_space}+xcur={number} {
 	sval = strstr( yytext, "=" );
 	++sval;
 	sscanf( sval, "%lf", &dval ); 

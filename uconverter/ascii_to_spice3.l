@@ -50,7 +50,7 @@ static int data_length = 0;
  /* pattern varialbles (use '()' for portable)*/
 identifier ([a-zA-Z][a-zA-Z0-9_\.:#]*)
 number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
-while_space ([ \t]+)
+white_space ([ \t]+)
 configure_start (#)
 eol (\r?\n)
 
@@ -66,7 +66,7 @@ eol (\r?\n)
 	yy_push_state( S_COUNT_NODE );
 }
 
-{while_space} {
+{white_space} {
 	/* ignore */
 }
 
@@ -80,7 +80,7 @@ eol (\r?\n)
 	++node_count;
 }
 
-<S_COUNT_NODE>{while_space} {
+<S_COUNT_NODE>{white_space} {
 	/* ignore */
 }
 
@@ -99,11 +99,11 @@ eol (\r?\n)
 	/* ignore */
 }
 
-<S_COUNT_DATA>{number}{while_space}*{eol} {
+<S_COUNT_DATA>{number}{white_space}*{eol} {
 	++data_length;
 }
 
-<S_COUNT_DATA>{while_space}|{eol} {
+<S_COUNT_DATA>{white_space}|{eol} {
 	/* ignore */
 }
 
@@ -127,7 +127,7 @@ eol (\r?\n)
 	fwrite( (void *)&dval, sizeof(double), 1, yyout );
 }
 
-<S_READ_DATA>{while_space}|{eol} {
+<S_READ_DATA>{white_space}|{eol} {
 	/* ignore */
 }
 
@@ -142,7 +142,7 @@ eol (\r?\n)
 	++ival;
 }
 
-<S_READ_NODE>{while_space} {
+<S_READ_NODE>{white_space} {
 	/* ignore */
 }
 
