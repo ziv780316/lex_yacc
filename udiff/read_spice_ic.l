@@ -73,15 +73,7 @@ eol (\r?\n)
 	yy_push_state( S_READ_NODE );
 }
 
-^{white_space}*{eol} {
-	/* ignore empty line */
-}
-
-{white_space}+|{eol} {
-	/* ignore */
-}
-
-. {
+.|{eol} {
 	/* ignore */
 }
 
