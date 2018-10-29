@@ -4,8 +4,10 @@
 /****************************************************************/
 #include <errno.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "hash.h"
+extern bool g_debug;
 
 /* executed prior before each rule */
 /* #define YY_USER_ACTION ++rule_count[yy_act]; */ 
@@ -85,6 +87,10 @@ eol (\r?\n)
 <S_READ_VALUE>{number} {
 	sscanf( yytext, "%lf", &dval ); 
 	hash_s_d_insert( dict_id, sval, dval );
+	if ( g_debug )
+	{
+		fprintf( stderr, "[Debug] insert key=%s value=%lf\n", sval, dval );
+	}
 	yy_pop_state();
 }
 
@@ -98,8 +104,9 @@ eol (\r?\n)
 	abort();
 }
 
+ /* this token will be read after return of yywrap */
 <<EOF>> {
-	fprintf( stderr, "return %d\n", dict_id );
+	/* return dictionary id */
 	return dict_id;
 }
 

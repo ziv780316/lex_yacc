@@ -13,19 +13,21 @@ VPATH=include library bin unit_test # specify directory where to check target fi
 #=================================================
 # Compiler settings
 #=================================================
-CC        = gcc
-CPP       = g++
-FLEX      = flex 
-FLEX_FLAG = 
-DEFINES   =
-YACC      = bison -Wall
-YACC_FLAG = 
-LINKER    = $(CPP)
-CFLAGS    = $(DEFINES) -O2 -Wfatal-errors -Wall -Wextra -std=gnu99 -fPIC
-CPPFLAGS  = $(DEFINES) -O2 -Wfatal-errors -Wall -Wextra -std=c++11 -fPIC
-LIBS      = -lm -L/usr/lib/x86_64-linux-gnu -lfl 
-INCLUDE   = -I./include
-MOVE      = mv -f
+CC         = gcc
+CPP        = g++
+FLEX       = flex 
+BUILD_TYPE = -O2
+FLEX_BUILD_TYPE = 
+FLEX_FLAG  = $(FLEX_BUILD_TYPE)
+DEFINES    =
+YACC       = bison -Wall
+YACC_FLAG  = 
+LINKER     = $(CPP)
+CFLAGS     = $(DEFINES) $(BUILD_TYPE) -Wfatal-errors -Wall -Wextra -std=gnu99 -fPIC
+CPPFLAGS   = $(DEFINES) $(BUILD_TYPE) -Wfatal-errors -Wall -Wextra -std=c++11 -fPIC
+LIBS       = -lm -L/usr/lib/x86_64-linux-gnu -lfl 
+INCLUDE    = -I./include
+MOVE       = mv -f
 
 #=================================================
 # Build target
@@ -68,11 +70,9 @@ PARSER_TARGET    = udiff
 #=================================================
 default: $(PARSER_TARGET) 
 
-debug: set_debug_flag default
-
-set_debug_flag:
-	$(eval FLEX_FLAG += -d )
-	$(eval CFLAGS += -g3 )
+debug: BUILD_TYPE:=-g3 
+debug: FLEX_BUILD_TYPE:=-d
+debug: default
 
 create_dir:
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) 

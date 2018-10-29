@@ -17,9 +17,9 @@ opt_t g_opts = {
 	.input_file2 = NULL,
 	.output_file = NULL,
 	.input_format = TWO_COLUMN,
-	.diff_format = DIFF_TURN_ON_ALL,
+	.diff_format = (DIFF_SHOW_AVG | DIFF_SHOW_VALUE | DIFF_SHOW_VD | DIFF_SHOW_RATIO | DIFF_SORT),
 	.reltol = 1e-2,
-	.abstol = 1e-9,
+	.abstol = 0.0,
 	.debug = false
 };
 
@@ -37,7 +37,7 @@ void show_help ()
 		"  -r | --input_format =>  specify input file format\n"
 		"  -f | --diff_format  =>  specify report format\n"
 		"  -t | --reltol =>  relative tolerance\n"
-		"  -a | --abstol =>  absolute tolerance\n"
+		"  -s | --abstol =>  absolute tolerance\n"
 		"\n"
 		"* support input format:\n"
 		"   two_column\n"
@@ -47,11 +47,13 @@ void show_help ()
 		"   sparse_matrix\n"
 		"\n"
 		"* diff report format:\n"
-		"   0001 => show_all\n"
-		"   0010 => sort from largest diff\n"
-		"   0100 => show value\n"
-		"   1000 => show ratio\n"
-		"   1111 => turn on all\n"
+		"   000001 => show_all\n"
+		"   000010 => sort descending\n"
+		"   000100 => show ratio\n"
+		"   001000 => show difference\n"
+		"   010000 => show value\n"
+		"   100000 => show avg\n"
+		"   111111 => turn on all\n"
 		);
 }
 
@@ -97,14 +99,14 @@ void parse_cmd_options ( int argc, char **argv )
 			{"input_format", required_argument, 0, 'r'},
 			{"diff_format", required_argument, 0, 'f'},
 			{"reltol", required_argument, 0, 't'},
-			{"abstol", required_argument, 0, 'a'},
+			{"abstol", required_argument, 0, 's'},
 			{0, 0, 0, 0}
 		};
 
 		// getopt_long stores the option index here
 		int option_index = 0;
 
-		c = getopt_long( argc, argv, "hda:b:o:r:f:t:a:", long_options, &option_index );
+		c = getopt_long( argc, argv, "hda:b:o:r:f:t:s:", long_options, &option_index );
 
 		// detect the end of the options
 		if ( -1 == c )
@@ -133,6 +135,14 @@ void parse_cmd_options ( int argc, char **argv )
 
 			case 'o':
 				g_opts.output_file = optarg;
+				break;
+
+			case 't':
+				g_opts.reltol = atof( optarg );
+				break;
+
+			case 's':
+				g_opts.abstol = atof( optarg );
 				break;
 
 			case 'r':
@@ -173,7 +183,7 @@ void parse_cmd_options ( int argc, char **argv )
 				g_opts.diff_format = 0;
 				if ( '1' == optarg[0] )
 				{
-					g_opts.diff_format |= DIFF_SHOW_RATIO;
+					g_opts.diff_format |= DIFF_SHOW_AVG;
 				}
 				if ( '1' == optarg[1] )
 				{
@@ -181,9 +191,17 @@ void parse_cmd_options ( int argc, char **argv )
 				}
 				if ( '1' == optarg[2] )
 				{
-					g_opts.diff_format |= DIFF_SORT;
+					g_opts.diff_format |= DIFF_SHOW_VD;
 				}
 				if ( '1' == optarg[3] )
+				{
+					g_opts.diff_format |= DIFF_SHOW_RATIO;
+				}
+				if ( '1' == optarg[4] )
+				{
+					g_opts.diff_format |= DIFF_SORT;
+				}
+				if ( '1' == optarg[5] )
 				{
 					g_opts.diff_format |= DIFF_SHOW_ALL;
 				}

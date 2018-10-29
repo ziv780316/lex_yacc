@@ -104,7 +104,7 @@ int hash_s_d_size ( int id )
 
 void hash_s_d_insert ( int id, char *key, double dval )
 {
-	s_d_dict_vector[id].insert( pair<char *, double>( key, dval ) );
+	s_d_dict_vector[id].insert( pair<char *, double>( strdup(key), dval ) );
 }
 
 bool hash_s_d_has_key ( int id, char *key )
@@ -186,7 +186,7 @@ void hash_s_d_dump ( int id )
 	int i;
 	int size = hash_s_d_size( id );
 	s_d_pair_t *pairs = hash_s_d_get_pairs( id );
-	printf( "dict %d:\n" );
+	printf( "dict %d (size=%d):\n", id, size );
 	for ( i = 0; i < size; ++i )
 	{
 		printf( "%s => %lf\n", pairs[i].key, pairs[i].value );
