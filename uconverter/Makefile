@@ -67,8 +67,6 @@ set_debug_flag:
 create_dir:
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) 
 
-$(LEX_YECC_OBJ): $(LEX_YECC_TARGET)
-
 $(PARSER_TARGET): create_dir $(LEX_YECC_OBJ) $(PARSER_OBJ) 
 	cd $(LIBRARY_DIR);\
 	$(LINKER) -o $@ $(PARSER_OBJ) $(LEX_YECC_OBJ) $(LIBS);\

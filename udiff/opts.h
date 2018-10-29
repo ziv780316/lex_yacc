@@ -4,7 +4,7 @@
 typedef enum {
 	TWO_COLUMN,
 	RAW_ASCII,
-	HSPICE_IC,
+	SPICE_IC,
 	DENSSE_MATRIX,
 	SPARSE_MATRIX
 } file_format;

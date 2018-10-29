@@ -19,10 +19,13 @@ typedef struct
 	bool is_diff;
 } compare_result_pair_t;
 
-void read_two_column ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug );
 void diff_two_dict( int *dict_id1, int *dict_id2, FILE *fout, double rtol, double atol, unsigned int diff_report_format, bool debug );
+void read_two_column ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug );
+void read_spice_ic ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug );
 extern int read_two_column_yylex (void);
+extern int read_spice_ic_yylex (void);
 extern FILE *read_two_column_yyin;
+extern FILE *read_spice_ic_yyin;
 static int qsort_result_compare_descending ( const void *p, const void *q ); // called in qsort
 
 bool g_debug = false;
@@ -84,6 +87,10 @@ int main ( int argc, char **argv )
 		{
 			case TWO_COLUMN:
 				read_two_column( fin1, fin2, &dict_id1, &dict_id2, debug );
+				break;
+
+			case SPICE_IC:
+				read_spice_ic( fin1, fin2, &dict_id1, &dict_id2, debug );
 				break;
 
 			default:
@@ -219,7 +226,14 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 	if ( diff_report_format & DIFF_SHOW_SUMMARY )
 	{
 		fprintf( fout, "* Diff Count (%%) = %.5lf (%d/%d)\n", (diff_count / (double)size) * 100, diff_count, size );
-		fprintf( fout, "* Avg  Ratio (%%) = %.5lf\n", sum / (double)size );
+		if ( sum / (double)size > 1e3 )
+		{
+			fprintf( fout, "* Avg  Ratio (%%) = %.5e\n", sum / (double)size );
+		}
+		else
+		{
+			fprintf( fout, "* Avg  Ratio (%%) = %.5lf\n", sum / (double)size );
+		}
 		fprintf( fout, "* NAN  Count (%%) = %.5lf (%d/%d)\n", (nan_count / (double)size) * 100, nan_count, size );
 		fprintf( fout, "-----------------------------------------------------\n" );
 	}
@@ -238,7 +252,14 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 			}
 			if ( diff_report_format & DIFF_SHOW_RATIO )
 			{
-				fprintf( fout, "  %8.5lf", results[i].vd_ratio );
+				if ( results[i].vd_abs > 1e3 )
+				{
+					fprintf( fout, "  %5e", results[i].vd_ratio );
+				}
+				else
+				{
+					fprintf( fout, "  %8.5lf", results[i].vd_ratio );
+				}
 			}
 			fprintf( fout, "\n" );
 		}
@@ -258,6 +279,26 @@ void read_two_column ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, boo
 
 	read_two_column_yyin  = fin2;
 	*dict_id2 = read_two_column_yylex ();
+	if ( debug )
+	{
+		printf( "dict id2=%d:\n", *dict_id2 );
+		hash_s_d_dump( *dict_id2 );
+	}
+}
+
+void read_spice_ic ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug )
+{
+	read_spice_ic_yyin  = fin1;
+	*dict_id1 = read_spice_ic_yylex ();
+	if ( debug )
+	{
+		printf( "dict id1=%d:\n", *dict_id1 );
+		hash_s_d_dump( *dict_id1 );
+
+	}
+
+	read_spice_ic_yyin  = fin2;
+	*dict_id2 = read_spice_ic_yylex ();
 	if ( debug )
 	{
 		printf( "dict id2=%d:\n", *dict_id2 );

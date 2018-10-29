@@ -15,7 +15,7 @@ static int is_str_nocase_match ( const char *str_a, const char *str_b );
 opt_t g_opts = {
 	.input_file1 = NULL,
 	.input_file2 = NULL,
-	.output_file = NULL,
+	.output_file = "/dev/stdout",
 	.input_format = TWO_COLUMN,
 	.diff_format = (DIFF_SHOW_SUMMARY | DIFF_SHOW_VALUE | DIFF_SHOW_VD | DIFF_SHOW_RATIO | DIFF_SORT),
 	.reltol = 1e-2,
@@ -42,7 +42,7 @@ void show_help ()
 		"* support input format:\n"
 		"   two_column\n"
 		"   raw_ascii \n"
-		"   hspice_ic\n"
+		"   spice_ic\n"
 		"   dense_matrix\n"
 		"   sparse_matrix\n"
 		"\n"
@@ -155,9 +155,9 @@ void parse_cmd_options ( int argc, char **argv )
 				{
 					g_opts.input_format = RAW_ASCII;
 				}
-				else if ( is_str_nocase_match( "hspice_ic", optarg ) )
+				else if ( is_str_nocase_match( "spice_ic", optarg ) )
 				{
-					g_opts.input_format = HSPICE_IC;
+					g_opts.input_format = SPICE_IC;
 				}
 				else if ( is_str_nocase_match( "dense_matrix", optarg ) )
 				{

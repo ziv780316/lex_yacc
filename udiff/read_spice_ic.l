@@ -35,7 +35,7 @@ static int dict_id = -1;
  /* %option debug */
 
  /* change prefix */
-%option prefix="read_two_column_yy"
+%option prefix="read_spice_ic_yy"
 
  /* enable yy_push_state, yy_pop_state and yy_top_state */
 %option stack
@@ -46,17 +46,21 @@ static int dict_id = -1;
  /* start condition */
 
  /* exclusive start condition */
+%x S_READ_NODE
 %x S_READ_VALUE
+%x S_READ_VALUE_WITH_SCALE
 
  /* pattern varialbles (use '()' for portable)*/
-identifier ([^ \t\r\n=]+)
+identifier ([^ +\t\r\n=]+)
 number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
+scale_char ([gxkmunpfaGXKMUNPFA])
 white_space ([ \t]+)
 eol (\r?\n)
 
 %%
  /* local varialbe in yylex */
  char sval[BUFSIZ];
+ char cval;
  double dval;
 
  /* initialize dictionary */
@@ -65,6 +69,10 @@ eol (\r?\n)
  /****************************************************************/
  /*                count varialbles and points                   */
  /****************************************************************/
+^{white_space}*\.(nodeset|ic){white_space}*{eol} {
+	yy_push_state( S_READ_NODE );
+}
+
 ^{white_space}*{eol} {
 	/* ignore empty line */
 }
@@ -73,15 +81,36 @@ eol (\r?\n)
 	/* ignore */
 }
 
-{identifier} {
+. {
+	/* ignore */
+}
+
+<S_READ_NODE>^{white_space}*\+{white_space}* {
+	/* ignore */
+}
+
+<S_READ_NODE>{white_space}+|{eol} {
+	/* ignore */
+}
+
+<S_READ_NODE>{identifier} {
 	strcpy( sval, yytext );
 	yy_push_state( S_READ_VALUE );
 }
 
+<S_READ_NODE>^[^+]*{eol} {
+	yy_pop_state();
+}
+
  /* exception */
-. {
-	fprintf( stderr, "[Error] INITIAL unknown token='%s' line=%d\n", yytext, yylineno );
+<S_READ_NODE>. {
+	fprintf( stderr, "[Error] S_READ_NODE unknown token='%s' line=%d\n", yytext, yylineno );
 	abort();
+}
+
+<S_READ_VALUE>{number}/{scale_char} {
+	sscanf( yytext, "%lf", &dval ); 
+	yy_push_state( S_READ_VALUE_WITH_SCALE );
 }
 
 <S_READ_VALUE>{number} {
@@ -96,6 +125,32 @@ eol (\r?\n)
 
 <S_READ_VALUE>{white_space}+|= {
 	/* ignore */
+}
+
+<S_READ_VALUE_WITH_SCALE>{scale_char} {
+	cval = yytext[0];
+	switch ( cval )
+	{
+		case 'g': dval *= 1e+9; break;
+		case 'x': dval *= 1e+6; break;
+		case 'k': dval *= 1e+3; break;
+		case 'm': dval *= 1e-3; break;
+		case 'u': dval *= 1e-6; break;
+		case 'n': dval *= 1e-9; break;
+		case 'p': dval *= 1e-12; break;
+		case 'f': dval *= 1e-15; break;
+		case 'a': dval *= 1e-18; break;
+		default :
+			fprintf( stderr, "[Error] unknown scale character '%c'\n", cval );
+			abort();
+	}
+	yy_pop_state(); // up to S_READ_VALUE
+	hash_s_d_insert( dict_id, sval, dval );
+	if ( g_debug )
+	{
+		fprintf( stderr, "[Debug] insert key=%s value=%lf\n", sval, dval );
+	}
+	yy_pop_state(); // up tp S_READ_NODE
 }
 
  /* exception */

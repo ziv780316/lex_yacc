@@ -35,7 +35,7 @@ MOVE       = mv -f
 BIN_DIR          = bin
 UNIT_TEST_DIR    = unit_test
 LIBRARY_DIR      = library
-LEX_YECC_TARGET  = read_two_column.l.c 
+LEX_YECC_TARGET  = read_two_column.l.c read_spice_ic.l.c
 LEX_YECC_OBJ     = $(LEX_YECC_TARGET:.c=.o)
 PARSER_OBJ       = main.o opts.o hash.o
 PARSER_TARGET    = udiff
@@ -76,8 +76,6 @@ debug: default
 
 create_dir:
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) 
-
-$(LEX_YECC_OBJ): $(LEX_YECC_TARGET)
 
 $(PARSER_TARGET): create_dir $(LEX_YECC_OBJ) $(PARSER_OBJ) 
 	cd $(LIBRARY_DIR);\
