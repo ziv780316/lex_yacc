@@ -121,6 +121,8 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 	// compare value
 	int i;
 	int size = size1;
+	int nan_count = 0;
+	int diff_count = 0;
 	size_t max_key_length = 0;
 	char **keys1 = hash_s_d_get_keys( id1 );
 	char *key;
@@ -188,8 +190,19 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 			max_key_length = strlen( key );
 		}
 
-		// use in showing average
-		sum += vd_ratio;
+		// use in summary
+		if ( isnan(vd_ratio) )
+		{
+			++nan_count;
+		}
+		else
+		{
+			sum += vd_ratio;
+		}
+		if ( is_diff )
+		{
+			++diff_count;
+		}
 
 		if ( debug )
 		{
@@ -203,10 +216,12 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 		qsort( results, size, sizeof(compare_result_pair_t), qsort_result_compare_descending );
 	}
 
-	if ( diff_report_format & DIFF_SHOW_AVG )
+	if ( diff_report_format & DIFF_SHOW_SUMMARY )
 	{
-		fprintf( fout, "* Avg.(%%) = %.5lf\n", sum / (double)size );
-		fprintf( fout, "---------------------------------\n" );
+		fprintf( fout, "* Diff Count (%%) = %.5lf (%d/%d)\n", (diff_count / (double)size) * 100, diff_count, size );
+		fprintf( fout, "* Avg  Ratio (%%) = %.5lf\n", sum / (double)size );
+		fprintf( fout, "* NAN  Count (%%) = %.5lf (%d/%d)\n", (nan_count / (double)size) * 100, nan_count, size );
+		fprintf( fout, "-----------------------------------------------------\n" );
 	}
 	for ( i = 0; i < size; ++i )
 	{
@@ -255,7 +270,12 @@ static int qsort_result_compare_descending ( const void *p, const void *q )
 	compare_result_pair_t *pair_p = (compare_result_pair_t *) p;
 	compare_result_pair_t *pair_q = (compare_result_pair_t *) q;
 
-	if ( pair_p->vd_ratio < pair_q->vd_ratio )
+	if ( isnan(pair_p->vd_ratio) || isnan(pair_q->vd_ratio) )
+	{
+		// regard nan is smallest
+		return 1;
+	}
+	else if ( pair_p->vd_ratio < pair_q->vd_ratio )
 	{
 		return 1;
 	}

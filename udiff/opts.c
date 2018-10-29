@@ -17,7 +17,7 @@ opt_t g_opts = {
 	.input_file2 = NULL,
 	.output_file = NULL,
 	.input_format = TWO_COLUMN,
-	.diff_format = (DIFF_SHOW_AVG | DIFF_SHOW_VALUE | DIFF_SHOW_VD | DIFF_SHOW_RATIO | DIFF_SORT),
+	.diff_format = (DIFF_SHOW_SUMMARY | DIFF_SHOW_VALUE | DIFF_SHOW_VD | DIFF_SHOW_RATIO | DIFF_SORT),
 	.reltol = 1e-2,
 	.abstol = 0.0,
 	.debug = false
@@ -52,7 +52,7 @@ void show_help ()
 		"   000100 => show ratio\n"
 		"   001000 => show difference\n"
 		"   010000 => show value\n"
-		"   100000 => show avg\n"
+		"   100000 => show summary\n"
 		"   111111 => turn on all\n"
 		);
 }
@@ -183,7 +183,7 @@ void parse_cmd_options ( int argc, char **argv )
 				g_opts.diff_format = 0;
 				if ( '1' == optarg[0] )
 				{
-					g_opts.diff_format |= DIFF_SHOW_AVG;
+					g_opts.diff_format |= DIFF_SHOW_SUMMARY;
 				}
 				if ( '1' == optarg[1] )
 				{
