@@ -94,7 +94,7 @@ eol (\r?\n)
 	yy_push_state( S_READ_VALUE );
 }
 
-<S_READ_NODE>^[^+]*{eol} {
+<S_READ_NODE>^[^+\n]*{eol} {
 	yy_pop_state();
 }
 
