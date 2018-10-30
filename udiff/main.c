@@ -22,10 +22,13 @@ typedef struct
 void diff_two_dict( int *dict_id1, int *dict_id2, FILE *fout, double rtol, double atol, unsigned int diff_report_format, bool debug );
 void read_two_column ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug );
 void read_spice_ic ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug );
+void read_sparse_matrix ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug );
 extern int read_two_column_yylex (void);
 extern int read_spice_ic_yylex (void);
+extern int read_sparse_matrix_yylex (void);
 extern FILE *read_two_column_yyin;
 extern FILE *read_spice_ic_yyin;
+extern FILE *read_sparse_matrix_yyin;
 static int qsort_result_compare_descending ( const void *p, const void *q ); // called in qsort
 
 bool g_debug = false;
@@ -91,6 +94,10 @@ int main ( int argc, char **argv )
 
 			case SPICE_IC:
 				read_spice_ic( fin1, fin2, &dict_id1, &dict_id2, debug );
+				break;
+
+			case SPARSE_MATRIX:
+				read_sparse_matrix( fin1, fin2, &dict_id1, &dict_id2, debug );
 				break;
 
 			default:
@@ -299,6 +306,26 @@ void read_spice_ic ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool 
 
 	read_spice_ic_yyin  = fin2;
 	*dict_id2 = read_spice_ic_yylex ();
+	if ( debug )
+	{
+		printf( "dict id2=%d:\n", *dict_id2 );
+		hash_s_d_dump( *dict_id2 );
+	}
+}
+
+void read_sparse_matrix ( FILE *fin1, FILE *fin2, int *dict_id1, int *dict_id2, bool debug )
+{
+	read_sparse_matrix_yyin  = fin1;
+	*dict_id1 = read_sparse_matrix_yylex ();
+	if ( debug )
+	{
+		printf( "dict id1=%d:\n", *dict_id1 );
+		hash_s_d_dump( *dict_id1 );
+
+	}
+
+	read_sparse_matrix_yyin  = fin2;
+	*dict_id2 = read_sparse_matrix_yylex ();
 	if ( debug )
 	{
 		printf( "dict id2=%d:\n", *dict_id2 );
