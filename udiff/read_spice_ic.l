@@ -51,7 +51,7 @@ static int dict_id = -1;
 %x S_READ_VALUE_WITH_SCALE
 
  /* pattern varialbles (use '()' for portable)*/
-identifier ([^ +\t\r\n=]+)
+identifier ([^ +\t\r\n=()]+)
 number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
 scale_char ([gxkmunpfaGXKMUNPFA])
 white_space ([ \t]+)
@@ -78,11 +78,15 @@ eol (\r?\n)
 }
 
 <S_READ_NODE>^{white_space}*\+{white_space}* {
-	/* ignore */
+	/* ignore + */
 }
 
 <S_READ_NODE>{white_space}+|{eol} {
-	/* ignore */
+	/* ignore eol */
+}
+
+<S_READ_NODE>[vViI]{white_space}*"(" {
+	/* ignore v( i( */
 }
 
 <S_READ_NODE>{identifier} {
@@ -115,7 +119,7 @@ eol (\r?\n)
 	yy_pop_state();
 }
 
-<S_READ_VALUE>{white_space}+|= {
+<S_READ_VALUE>{white_space}+|=|")" {
 	/* ignore */
 }
 
