@@ -36,6 +36,9 @@ void show_help ()
 		"   raw_ascii\n"
 		"   mm_rhs_list\n"
 		"   mm_sparse\n"
+		"   mm_sparse_reorder\n"
+		"   sparse_triplet\n"
+		"   sparse_csc\n"
 		"   matrix_dense_ascii\n"
 		"   waveform_spice3\n"
 		);
@@ -128,6 +131,14 @@ void parse_cmd_options ( int argc, char **argv )
 				{
 					g_opts.input_format = MM_SPARSE;
 				}
+				else if ( is_str_nocase_match( "sparse_triplet", optarg ) )
+				{
+					g_opts.input_format = SPARSE_TRIPLET;
+				}
+				else if ( is_str_nocase_match( "sparse_csc", optarg ) )
+				{
+					g_opts.input_format = SPARSE_CSC;
+				}
 				else
 				{
 					fprintf( stderr, "[Error] unknown input format %s\n", optarg );
@@ -140,6 +151,14 @@ void parse_cmd_options ( int argc, char **argv )
 				if ( is_str_nocase_match( "raw_ascii", optarg ) )
 				{
 					g_opts.output_format = RAW_ASCII;
+				}
+				else if ( is_str_nocase_match( "mm_sparse_reorder", optarg ) )
+				{
+					g_opts.output_format = MM_SPARSE_REORDER;
+				}
+				else if ( is_str_nocase_match( "sparse_triplet", optarg ) )
+				{
+					g_opts.output_format = SPARSE_TRIPLET;
 				}
 				else if ( is_str_nocase_match( "matrix_dense_ascii", optarg ) )
 				{

@@ -14,13 +14,17 @@ VPATH=include library bin unit_test # specify directory where to check target fi
 # Compiler settings
 #=================================================
 CC        = gcc
+CPP        = g++
 FLEX      = flex 
-FLEX_FLAG = 
+BUILD_TYPE = -O2
+FLEX_BUILD_TYPE = 
+FLEX_FLAG = $(FLEX_BUILD_TYPE)
 DEFINES   =
 YACC      = bison -Wall
 YACC_FLAG = 
-LINKER    = $(CC)
-CFLAGS    = $(DEFINES) -O2 -Wfatal-errors -Wall -Wextra -std=gnu99 -fPIC
+LINKER     = $(CPP)
+CFLAGS     = $(DEFINES) $(BUILD_TYPE) -Wfatal-errors -Wall -Wextra -std=gnu99 -fPIC
+CPPFLAGS   = $(DEFINES) $(BUILD_TYPE) -Wfatal-errors -Wall -Wextra -std=c++11 -fPIC
 LIBS      = -lm -L/usr/lib/x86_64-linux-gnu -lfl 
 INCLUDE   = -I./include
 MOVE      = mv -f
@@ -31,9 +35,9 @@ MOVE      = mv -f
 BIN_DIR          = bin
 UNIT_TEST_DIR    = unit_test
 LIBRARY_DIR      = library
-LEX_YECC_TARGET  = ascii_to_spice3.l.c mm_rhs_to_ascii.l.c
+LEX_YECC_TARGET  = ascii_to_spice3.l.c mm_rhs_to_ascii.l.c mm_sparse_reorder.l.c
 LEX_YECC_OBJ     = $(LEX_YECC_TARGET:.c=.o)
-PARSER_OBJ       = main.o opts.o 
+PARSER_OBJ       = main.o opts.o hash.o
 PARSER_TARGET    = uconverter
 
 #=================================================
@@ -47,6 +51,14 @@ PARSER_TARGET    = uconverter
 	$(CC) -E $< -o $@ $(CFLAGS) $(INCLUDE)
 	@$(MOVE) $@ $(LIBRARY_DIR)
 
+%.o:%.cpp
+	$(CPP) -c $< -o $@ $(CPPFLAGS) $(INCLUDE)
+	@$(MOVE) $@ $(LIBRARY_DIR) # @ means do not echo command
+
+%.e:%.cpp
+	$(CPP) -E $< -o $@ $(CPPFLAGS) $(INCLUDE)
+	@$(MOVE) $@ $(LIBRARY_DIR) # @ means do not echo command
+
 %.l.c:%.l
 	$(FLEX) $(FLEX_FLAG) -o $@ $< 
 
@@ -58,14 +70,13 @@ PARSER_TARGET    = uconverter
 #=================================================
 default: $(PARSER_TARGET) 
 
-debug: set_debug_flag default
-
-set_debug_flag:
-	$(eval FLEX_FLAG += -d )
-	$(eval CFLAGS += -g3 )
+debug: BUILD_TYPE:=-g3 
+debug: FLEX_BUILD_TYPE:=-d
+debug: default
 
 create_dir:
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) 
+
 
 $(PARSER_TARGET): create_dir $(LEX_YECC_OBJ) $(PARSER_OBJ) 
 	cd $(LIBRARY_DIR);\

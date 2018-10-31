@@ -3,8 +3,11 @@
 
 typedef enum {
 	RAW_ASCII,
-	MM_RHS_LIST,  // matrix-market format RHS
-	MM_SPARSE,    // matrix-market format sparse matrix
+	MM_RHS_LIST,  		// matrix-market format RHS list
+	MM_SPARSE,    		// matrix-market format sparse matrix
+	MM_SPARSE_REORDER,    
+	SPARSE_TRIPLET,
+	SPARSE_CSC,
 	MATRIX_DENSE_ASCII, 
 	WAVEFORM_SPICE3
 } file_format;

@@ -6,14 +6,20 @@
 
 #include "opts.h"
 
-extern bool ascii_to_spice3 ( FILE *fin, FILE *fout, bool debug );
-extern bool mm_rhs_to_ascii ( FILE *fin, FILE *fout, bool debug );
+bool ascii_to_spice3 ( FILE *fin, FILE *fout, bool debug );
+bool mm_rhs_to_ascii ( FILE *fin, FILE *fout, bool debug );
+bool mm_sparse_reorder ( FILE *fin, FILE *fout, bool debug );
 extern int ascii_to_spice3_yylex (void);
 extern int mm_rhs_to_ascii_yylex (void);
+extern int mm_sparse_reorder_yylex (void);
 extern FILE *ascii_to_spice3_yyin;
-extern FILE *ascii_to_spice3_yyout;
 extern FILE *mm_rhs_to_ascii_yyin;
+extern FILE *mm_sparse_reorder_yyin;
+extern FILE *ascii_to_spice3_yyout;
 extern FILE *mm_rhs_to_ascii_yyout;
+extern FILE *mm_sparse_reorder_yyout;
+
+bool g_debug = false;
 
 int main ( int argc, char **argv )
 {
@@ -54,6 +60,7 @@ int main ( int argc, char **argv )
 		char *out_format_name = g_opts.output_format_name;
 		file_format input_format  = g_opts.input_format;
 		file_format output_format = g_opts.output_format;
+		g_debug = debug;
 		switch ( input_format )
 		{
 			case RAW_ASCII:
@@ -75,6 +82,20 @@ int main ( int argc, char **argv )
 				{
 					case RAW_ASCII:
 						convert_success = mm_rhs_to_ascii ( fin, fout, debug );
+						break;
+
+					default:
+						fprintf( stderr, "[Error] cannot support conversion %s -> %s\n", in_format_name, out_format_name );
+						abort();
+						break;
+				}
+				break;
+
+			case MM_SPARSE:
+				switch ( output_format )
+				{
+					case MM_SPARSE_REORDER:
+						convert_success = mm_sparse_reorder ( fin, fout, debug );
 						break;
 
 					default:
@@ -124,6 +145,18 @@ bool mm_rhs_to_ascii ( FILE *fin, FILE *fout, bool debug )
 	mm_rhs_to_ascii_yyout = fout;
 
 	mm_rhs_to_ascii_yylex ();
+
+	return convert_success;
+}
+
+bool mm_sparse_reorder ( FILE *fin, FILE *fout, bool debug )
+{
+	bool convert_success = true;
+
+	mm_sparse_reorder_yyin  = fin;
+	mm_sparse_reorder_yyout = fout;
+
+	mm_sparse_reorder_yylex ();
 
 	return convert_success;
 }
