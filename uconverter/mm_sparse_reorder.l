@@ -83,7 +83,7 @@ eol (\r?\n)
  /*                count varialbles and points                   */
  /****************************************************************/
  /****************************************************************/
-<S_COUNT_SIZE>{white_space}+permr={index} {
+<S_COUNT_SIZE>permr={index} {
 	++mat_size;
 }
 
@@ -91,7 +91,7 @@ eol (\r?\n)
 	/* ignore */
 }
 
-<S_READ_PERMULATION>{white_space}+permr={index} {
+<S_READ_PERMULATION>permr={index} {
 	str = strstr( yytext, "=" );
 	++str;
 	permutations[count] = atoi( str );
@@ -102,7 +102,7 @@ eol (\r?\n)
 	/* ignore */
 }
 
-<S_READ_COMMENT>^{white_space}*{comment_start}.*{white_space}+permr=.+ {
+<S_READ_COMMENT>^{white_space}*{comment_start}.*permr=.+ {
 	perm_lines[ permutations[count] ] = strdup( yytext );
 	BEGIN S_READ_NODE;
 }
@@ -111,7 +111,7 @@ eol (\r?\n)
 	/* ignore */
 }
 
-<S_READ_NODE>{white_space}+node_name={identifier} {
+<S_READ_NODE>node_name={identifier} {
 	str = strstr( yytext, "=" );
 	++str;
 	node_names[ permutations[count] ] = strdup( str );
@@ -122,7 +122,7 @@ eol (\r?\n)
 	BEGIN S_READ_COMMENT;
 }
 
-<S_DUMP>^{white_space}*{comment_start}.*{white_space}+permr=.+ {
+<S_DUMP>^{white_space}*{comment_start}.*permr=.+ {
 	fprintf( yyout, "%s", perm_lines[count] );
 	++count;
 }
@@ -132,11 +132,12 @@ eol (\r?\n)
 	{
 		// skip first line matrix size
 		skip_size = true;
+		fprintf( yyout, "%s", yytext );
 	}
 	else
 	{
 		sscanf( yytext, "%d %d %lf", &row, &col, &dval ); 
-		fprintf( yyout, "%d %d %lf", permutations[row - 1], col, dval ); 
+		fprintf( yyout, "%d %d %17.10e", permutations[row - 1], col, dval ); 
 	}
 }
 

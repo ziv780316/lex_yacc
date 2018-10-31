@@ -35,8 +35,8 @@ MOVE       = mv -f
 BIN_DIR          = bin
 UNIT_TEST_DIR    = unit_test
 LIBRARY_DIR      = library
-LEX_YECC_TARGET  = read_two_column.l.c read_spice_ic.l.c read_sparse_matrix.l.c
-LEX_YECC_OBJ     = $(LEX_YECC_TARGET:.c=.o)
+LEX_YACC_TARGET  = read_two_column.l.c read_spice_ic.l.c read_sparse_matrix.l.c
+LEX_YACC_OBJ     = $(LEX_YACC_TARGET:.c=.o)
 PARSER_OBJ       = main.o opts.o hash.o
 PARSER_TARGET    = udiff
 
@@ -59,6 +59,10 @@ PARSER_TARGET    = udiff
 	$(CPP) -E $< -o $@ $(CPPFLAGS) $(INCLUDE)
 	@$(MOVE) $@ $(LIBRARY_DIR) # @ means do not echo command
 
+%.l.o:%.l.c
+	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDE)
+	@$(MOVE) $@ $(LIBRARY_DIR) # @ means do not echo command
+
 %.l.c:%.l
 	$(FLEX) $(FLEX_FLAG) -o $@ $< 
 
@@ -77,9 +81,9 @@ debug: default
 create_dir:
 	@mkdir -p $(LIBRARY_DIR) $(BIN_DIR) 
 
-$(PARSER_TARGET): create_dir $(LEX_YECC_OBJ) $(PARSER_OBJ) 
+$(PARSER_TARGET): create_dir $(LEX_YACC_OBJ) $(PARSER_OBJ) 
 	cd $(LIBRARY_DIR);\
-	$(LINKER) -o $@ $(PARSER_OBJ) $(LEX_YECC_OBJ) $(LIBS);\
+	$(LINKER) -o $@ $(PARSER_OBJ) $(LEX_YACC_OBJ) $(LIBS);\
 	$(MOVE) $@ ../$(BIN_DIR)
 
 clean:
