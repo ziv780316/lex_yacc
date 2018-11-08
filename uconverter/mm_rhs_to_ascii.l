@@ -52,8 +52,8 @@ static int count = 0;
  /* pattern varialbles (use '()' for portable)*/
 identifier ([a-zA-Z0-9_\.:#]+)
 file_name ([a-zA-Z0-9_\.:#@\-]+)
-number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
-white_space ([ \t]+)
+number (-?[0-9]*"."?[0-9]+([eE][+-]?0?[0-9]+)?)
+white_space ([ \t])
 configure_start (%)
 eol (\r?\n)
 

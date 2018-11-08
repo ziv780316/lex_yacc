@@ -60,7 +60,7 @@ static char **perm_lines = NULL;
  /* pattern varialbles (use '()' for portable)*/
 identifier ([a-zA-Z0-9_\.:#]+)
 index ([0-9]+)
-number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
+number (-?[0-9]*"."?[0-9]+([eE][+-]?0?[0-9]+)?)
 white_space ([ \t])
 comment_start ([#%"]|\/\/)
 eol (\r?\n)

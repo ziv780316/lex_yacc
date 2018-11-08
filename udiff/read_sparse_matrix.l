@@ -52,8 +52,8 @@ static int dict_id = -1;
 
  /* pattern varialbles (use '()' for portable)*/
 index ([0-9]+)
-number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
-white_space ([ \t]+)
+number (-?[0-9]*"."?[0-9]+([eE][+-]?0?[0-9]+)?)
+white_space ([ \t])
 comment_start ([#%"]|\/\/)
 eol (\r?\n)
 
@@ -70,7 +70,7 @@ eol (\r?\n)
  /****************************************************************/
  /*                count varialbles and points                   */
  /****************************************************************/
-{white_space}+|{eol} {
+{white_space}|{eol} {
 	/* ignore */
 }
 
@@ -116,7 +116,7 @@ eol (\r?\n)
 	BEGIN INITIAL;
 }
 
-<S_READ_VALUE>{white_space}+|= {
+<S_READ_VALUE>{white_space}|= {
 	/* ignore */
 }
 

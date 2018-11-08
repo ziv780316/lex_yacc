@@ -52,9 +52,9 @@ static int dict_id = -1;
 
  /* pattern varialbles (use '()' for portable)*/
 identifier ([^ +\t\r\n=()]+)
-number (-?[0-9]+("."[0-9]+)?([eE][+-]?0?[0-9]+)?)
+number (-?[0-9]*"."?[0-9]+([eE][+-]?0?[0-9]+)?)
 scale_char ([gxkmunpfaGXKMUNPFA])
-white_space ([ \t]+)
+white_space ([ \t])
 eol (\r?\n)
 
 %%
@@ -81,7 +81,7 @@ eol (\r?\n)
 	/* ignore + */
 }
 
-<S_READ_NODE>{white_space}+|{eol} {
+<S_READ_NODE>{white_space}|{eol} {
 	/* ignore eol */
 }
 
@@ -119,7 +119,7 @@ eol (\r?\n)
 	yy_pop_state();
 }
 
-<S_READ_VALUE>{white_space}+|=|")" {
+<S_READ_VALUE>{white_space}|=|")" {
 	/* ignore */
 }
 
