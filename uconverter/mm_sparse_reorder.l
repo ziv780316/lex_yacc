@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 #include "hash.h"
-extern bool g_debug;
+#include "opts.h"
 
 /* executed prior before each rule */
 /* #define YY_USER_ACTION ++rule_count[yy_act]; */ 
@@ -105,6 +105,7 @@ eol (\r?\n)
 <S_READ_COMMENT>^{white_space}*{comment_start}.*permr=.+ {
 	perm_lines[ permutations[count] ] = strdup( yytext );
 	BEGIN S_READ_NODE;
+	yyless(0);
 }
 
 <S_READ_COMMENT>.|{eol} {
@@ -137,7 +138,14 @@ eol (\r?\n)
 	else
 	{
 		sscanf( yytext, "%d %d %lf", &row, &col, &dval ); 
-		fprintf( yyout, "%d %d %17.10e", permutations[row - 1], col, dval ); 
+		if ( AUXILIARY_INDEX_SPARSE_BY_NAME == g_opts.aux_format )
+		{
+			fprintf( yyout, "%-20s %-20s %17.10e", node_names[ permutations[row - 1] ], node_names[col], dval ); 
+		}
+		else
+		{
+			fprintf( yyout, "%d %d %17.10e", permutations[row - 1], col, dval ); 
+		}
 	}
 }
 

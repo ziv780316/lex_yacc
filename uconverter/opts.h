@@ -12,6 +12,12 @@ typedef enum {
 	WAVEFORM_SPICE3
 } file_format;
 
+typedef enum {
+	AUXILIARY_NONE,
+	AUXILIARY_SORT_SPARSE_BY_ROW,
+	AUXILIARY_INDEX_SPARSE_BY_NAME
+} auxiliary_format;
+
 typedef struct
 {
 	char *input_file;
@@ -20,6 +26,7 @@ typedef struct
 	char *output_format_name;
 	file_format input_format;
 	file_format output_format;
+	auxiliary_format aux_format;
 	bool debug;
 } opt_t;
 

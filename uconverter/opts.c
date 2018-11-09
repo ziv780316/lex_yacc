@@ -15,8 +15,11 @@ static int is_str_nocase_match ( const char *str_a, const char *str_b );
 opt_t g_opts = {
 	.input_file = NULL,
 	.output_file = NULL,
+	.input_format_name = NULL,
+	.output_format_name = NULL,
 	.input_format = RAW_ASCII,
-	.output_format = WAVEFORM_SPICE3
+	.aux_format = AUXILIARY_NONE,
+	.debug = false
 };
 
 void show_help ()
@@ -31,6 +34,7 @@ void show_help ()
 		"  -o | --output =>  specify converted file name\n"
 		"  -r | --input_format  =>  specify input file format\n"
 		"  -f | --output_format =>  specify converted file format\n"
+		"  -a | --auxiliary     =>  specify auxiliary output format\n"
 		"\n"
 		"* support format:\n"
 		"   raw_ascii\n"
@@ -41,6 +45,10 @@ void show_help ()
 		"   sparse_csc\n"
 		"   matrix_dense_ascii\n"
 		"   waveform_spice3\n"
+		"\n"
+		"* auxiliary:\n"
+		"   sort_sparse_by_row\n"
+		"   index_sparse_by_name\n"
 		);
 }
 
@@ -84,13 +92,14 @@ void parse_cmd_options ( int argc, char **argv )
 			{"output_file", required_argument, 0, 'o'},
 			{"input_format", required_argument, 0, 'r'},
 			{"output_format", required_argument, 0, 'f'},
+			{"auxiliary", required_argument, 0, 'a'},
 			{0, 0, 0, 0}
 		};
 
 		// getopt_long stores the option index here
 		int option_index = 0;
 
-		c = getopt_long( argc, argv, "hdi:o:r:f:", long_options, &option_index );
+		c = getopt_long( argc, argv, "hdi:o:r:f:a:", long_options, &option_index );
 
 		// detect the end of the options
 		if ( -1 == c )
@@ -167,6 +176,22 @@ void parse_cmd_options ( int argc, char **argv )
 				else if ( is_str_nocase_match( "waveform_spice3", optarg ) )
 				{
 					g_opts.output_format = WAVEFORM_SPICE3;
+				}
+				else
+				{
+					fprintf( stderr, "[Error] unknown converted format %s\n", optarg );
+					abort();
+				}
+				break;
+
+			case 'a':
+				if ( is_str_nocase_match( "sort_sparse_by_row", optarg ) )
+				{
+					g_opts.aux_format = AUXILIARY_SORT_SPARSE_BY_ROW;
+				}
+				else if ( is_str_nocase_match( "index_sparse_by_name", optarg ) )
+				{
+					g_opts.aux_format = AUXILIARY_INDEX_SPARSE_BY_NAME;
 				}
 				else
 				{

@@ -54,6 +54,7 @@ int main ( int argc, char **argv )
 		}
 
 		// convert input file
+		FILE *ftmp;
 		bool debug = g_opts.debug;
 		bool convert_success;
 		char *in_format_name = g_opts.input_format_name;
@@ -82,6 +83,22 @@ int main ( int argc, char **argv )
 				{
 					case RAW_ASCII:
 						convert_success = mm_rhs_to_ascii ( fin, fout, debug );
+						break;
+
+					case WAVEFORM_SPICE3:
+						ftmp = tmpfile();
+						if ( !ftmp )
+						{
+							fprintf( stderr, "[Error] create tmp file fail --> %s\n", strerror(errno) );
+							abort();
+						}
+						convert_success = mm_rhs_to_ascii ( fin, ftmp, debug );
+						fflush( ftmp ); 
+						fseek( ftmp, 0, SEEK_SET ); 
+						if ( convert_success )
+						{
+							convert_success = ascii_to_spice3 ( ftmp, fout, debug );
+						}
 						break;
 
 					default:
