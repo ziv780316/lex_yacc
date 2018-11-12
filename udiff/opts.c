@@ -17,6 +17,7 @@ opt_t g_opts = {
 	.input_file2 = NULL,
 	.output_file = "/dev/stdout",
 	.input_format = TWO_COLUMN,
+	.aux_format = AUXILIARY_NONE,
 	.diff_format = (DIFF_SHOW_SUMMARY | DIFF_SHOW_VALUE | DIFF_SHOW_VD | DIFF_SHOW_RATIO | DIFF_SORT),
 	.reltol = 1e-2,
 	.abstol = 0.0,
@@ -38,6 +39,7 @@ void show_help ()
 		"  -f | --diff_format  =>  specify report format\n"
 		"  -t | --reltol =>  relative tolerance\n"
 		"  -s | --abstol =>  absolute tolerance\n"
+		"  -x | --auxiliary =>  specify auxiliary output format\n"
 		"\n"
 		"* support input format:\n"
 		"   two_column\n"
@@ -45,6 +47,9 @@ void show_help ()
 		"   spice_ic\n"
 		"   dense_matrix\n"
 		"   sparse_matrix\n"
+		"\n"
+		"* auxiliary:\n"
+		"   mm_sparse\n"
 		"\n"
 		"* diff report format:\n"
 		"   000001 => show_all\n"
@@ -98,6 +103,7 @@ void parse_cmd_options ( int argc, char **argv )
 			{"output_file", required_argument, 0, 'o'},
 			{"input_format", required_argument, 0, 'r'},
 			{"diff_format", required_argument, 0, 'f'},
+			{"auxiliary", required_argument, 0, 'x'},
 			{"reltol", required_argument, 0, 't'},
 			{"abstol", required_argument, 0, 's'},
 			{0, 0, 0, 0}
@@ -106,7 +112,7 @@ void parse_cmd_options ( int argc, char **argv )
 		// getopt_long stores the option index here
 		int option_index = 0;
 
-		c = getopt_long( argc, argv, "hda:b:o:r:f:t:s:", long_options, &option_index );
+		c = getopt_long( argc, argv, "hda:b:o:r:f:t:s:x:", long_options, &option_index );
 
 		// detect the end of the options
 		if ( -1 == c )
@@ -204,6 +210,18 @@ void parse_cmd_options ( int argc, char **argv )
 				if ( '1' == optarg[5] )
 				{
 					g_opts.diff_format |= DIFF_SHOW_ALL;
+				}
+				break;
+
+			case 'x':
+				if ( is_str_nocase_match( "mm_sparse", optarg ) )
+				{
+					g_opts.aux_format = AUXILIARY_MM_SPARSE;
+				}
+				else
+				{
+					fprintf( stderr, "[Error] unknown input format %s\n", optarg );
+					abort();
 				}
 				break;
 

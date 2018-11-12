@@ -9,6 +9,11 @@ typedef enum {
 	SPARSE_MATRIX
 } file_format;
 
+typedef enum {
+	AUXILIARY_NONE,
+	AUXILIARY_MM_SPARSE
+} auxiliary_format;
+
 #define DIFF_FORMAT_BITS 6
 #define DIFF_TURN_ON_ALL 0x2f  // 111111
 #define DIFF_SHOW_SUMMARY 0x20 // 100000
@@ -25,6 +30,7 @@ typedef struct
 	char *output_file;
 	char *input_format_name;
 	file_format input_format;
+	auxiliary_format aux_format;
 	unsigned int diff_format;
 	double reltol;
 	double abstol;

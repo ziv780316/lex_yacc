@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 #include "hash.h"
-extern bool g_debug;
+#include "opts.h"
 
 /* executed prior before each rule */
 /* #define YY_USER_ACTION ++rule_count[yy_act]; */ 
@@ -51,7 +51,7 @@ static int dict_id = -1;
 %x S_READ_COMMENT
 
  /* pattern varialbles (use '()' for portable)*/
-index ([0-9]+)
+index ([^ \t\r\n]+)
 number (-?[0-9]*"."?[0-9]+([eE][+-]?0?[0-9]+)?)
 white_space ([ \t])
 comment_start ([#%"]|\/\/)
@@ -59,10 +59,21 @@ eol (\r?\n)
 
 %%
  /* local varialbe in yylex */
- char sval[BUFSIZ];
- int row;
- int col;
+ bool already_discard_mat_size;
+ char key[BUFSIZ];
+ char row[BUFSIZ];
+ char col[BUFSIZ];
  double dval;
+
+ /* throw mm file first info --> matrix size */
+ if ( AUXILIARY_MM_SPARSE == g_opts.aux_format )
+ {
+ 	already_discard_mat_size = false;
+ }
+ else
+ {
+ 	already_discard_mat_size = true;
+ }
 
  /* initialize dictionary */
  dict_id = hash_s_d_create();
@@ -87,8 +98,15 @@ eol (\r?\n)
 }
 
 ^{white_space}*{index}{white_space}+{index}{white_space}+=?{number} {
-	BEGIN S_READ_INDEX;
-	yyless(0);
+	if ( already_discard_mat_size )
+	{
+		BEGIN S_READ_INDEX;
+		yyless(0);
+	}
+	else
+	{
+		already_discard_mat_size = true;
+	}
 }
 
  /* exception */
@@ -98,8 +116,8 @@ eol (\r?\n)
 }
 
 <S_READ_INDEX>{index}{white_space}+{index} {
-	sscanf( yytext, "%d %d", &row, &col ); 
-	sprintf( sval, "%d,%d", row, col ); /* key is "row,col" */
+	sscanf( yytext, "%s %s", row, col ); 
+	sprintf( key, "%s,%s", row, col ); /* key is "row,col" */
 	BEGIN S_READ_VALUE;
 }
 
@@ -108,10 +126,10 @@ eol (\r?\n)
 
 <S_READ_VALUE>{number} {
 	sscanf( yytext, "%lf", &dval ); 
-	hash_s_d_insert( dict_id, sval, dval ); 
-	if ( g_debug )
+	hash_s_d_insert( dict_id, key, dval ); 
+	if ( g_opts.debug )
 	{
-		fprintf( stderr, "[Debug] insert key=%s value=%lf\n", sval, dval );
+		fprintf( stderr, "[Debug] insert key=%s value=%lf\n", key, dval );
 	}
 	BEGIN INITIAL;
 }
