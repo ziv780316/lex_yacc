@@ -46,8 +46,6 @@ static int dict_id = -1;
  /* start condition */
 
  /* exclusive start condition */
-%x S_READ_INDEX
-%x S_READ_VALUE
 %x S_READ_COMMENT
 
  /* pattern varialbles (use '()' for portable)*/
@@ -59,20 +57,22 @@ eol (\r?\n)
 
 %%
  /* local varialbe in yylex */
- bool already_discard_mat_size;
+ bool already_read_mat_size;
  char key[BUFSIZ];
  char row[BUFSIZ];
  char col[BUFSIZ];
+ int nnz; 
+ int size;
  double dval;
 
  /* throw mm file first info --> matrix size */
  if ( AUXILIARY_MM_SPARSE == g_opts.aux_format )
  {
- 	already_discard_mat_size = false;
+ 	already_read_mat_size = false;
  }
  else
  {
- 	already_discard_mat_size = true;
+ 	already_read_mat_size = true;
  }
 
  /* initialize dictionary */
@@ -97,50 +97,42 @@ eol (\r?\n)
 	BEGIN INITIAL;
 }
 
-^{white_space}*{index}{white_space}+{index}{white_space}+=?{number} {
-	if ( already_discard_mat_size )
+^{white_space}*{index}{white_space}+{index}{white_space}+{number} {
+	if ( already_read_mat_size )
 	{
-		BEGIN S_READ_INDEX;
-		yyless(0);
+		sscanf( yytext, "%s %s %lf", row, col, &dval ); 
+		sprintf( key, "%s,%s", row, col ); /* key is "row,col" */
+		hash_s_d_insert( dict_id, key, dval ); 
+		if ( g_opts.debug )
+		{
+			fprintf( stderr, "[Debug] insert key=%s value=%lf\n", key, dval );
+		}
 	}
 	else
 	{
-		already_discard_mat_size = true;
+		sscanf( yytext, "%s %s %d", row, col, &nnz ); 
+		sprintf( key, "matrix_size" ); 
+		size = atoi(row);
+		hash_s_d_insert( dict_id, key, (double)size ); 
+		if ( g_opts.debug )
+		{
+			fprintf( stderr, "[Debug] insert key=%s value=%lf\n", key, (double)size );
+		}
+
+		sprintf( key, "nnz" ); 
+		hash_s_d_insert( dict_id, key, (double)nnz ); 
+		if ( g_opts.debug )
+		{
+			fprintf( stderr, "[Debug] insert key=%s value=%lf\n", key, (double)nnz );
+		}
+
+		already_read_mat_size = true;
 	}
 }
 
  /* exception */
 . {
 	fprintf( stderr, "[Error] INITIAL unknown token='%s' line=%d\n", yytext, yylineno );
-	abort();
-}
-
-<S_READ_INDEX>{index}{white_space}+{index} {
-	sscanf( yytext, "%s %s", row, col ); 
-	sprintf( key, "%s,%s", row, col ); /* key is "row,col" */
-	BEGIN S_READ_VALUE;
-}
-
-<S_READ_INDEX>{index} {
-}
-
-<S_READ_VALUE>{number} {
-	sscanf( yytext, "%lf", &dval ); 
-	hash_s_d_insert( dict_id, key, dval ); 
-	if ( g_opts.debug )
-	{
-		fprintf( stderr, "[Debug] insert key=%s value=%lf\n", key, dval );
-	}
-	BEGIN INITIAL;
-}
-
-<S_READ_VALUE>{white_space}|= {
-	/* ignore */
-}
-
- /* exception */
-<S_READ_VALUE>. {
-	fprintf( stderr, "[Error] S_READ_VALUE unknown token='%s' line=%d\n", yytext, yylineno );
 	abort();
 }
 

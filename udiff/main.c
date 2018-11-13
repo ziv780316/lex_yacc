@@ -122,24 +122,44 @@ int main ( int argc, char **argv )
 void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, double atol, unsigned int diff_report_format, bool debug )
 {
 	// check dictionary size are equal
+	int i;
 	int id1 = *dict_id1;
 	int id2 = *dict_id2;
 	int size1 = hash_s_d_size( id1 );
 	int size2 = hash_s_d_size( id2 );
+	double val;
+	char **keys1 = hash_s_d_get_keys( id1 );
+	char **keys2 = hash_s_d_get_keys( id2 );
+	char *key;
 	if ( size1 != size2 )
 	{
 		fprintf( stderr, "[Error] dictionary size does not match %d != %d\n", size1, size2 );
+		for ( i = 0; i < size1; ++i )
+		{
+			if ( !hash_s_d_has_key( id2, keys1[i] ) )
+			{
+				key = keys1[i];
+				val = hash_s_d_find( id1, key );
+				fprintf( stderr, "%s key {%s => %.10e} is not found in file %s\n", g_opts.input_file1, keys1[i], val, g_opts.input_file2 );
+			}
+		}
+		for ( i = 0; i < size2; ++i )
+		{
+			if ( !hash_s_d_has_key( id1, keys2[i] ) )
+			{
+				key = keys2[i];
+				val = hash_s_d_find( id2, key );
+				fprintf( stderr, "%s key {%s => %.10e} is not found in file %s\n", g_opts.input_file2, keys2[i], val, g_opts.input_file1 );
+			}
+		}
 		abort();
 	}
 
 	// compare value
-	int i;
 	int size = size1;
 	int nan_count = 0;
 	int diff_count = 0;
 	size_t max_key_length = 0;
-	char **keys1 = hash_s_d_get_keys( id1 );
-	char *key;
 	double val1;
 	double val2;
 	double vd_abs;
