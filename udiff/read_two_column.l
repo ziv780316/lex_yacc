@@ -47,10 +47,13 @@ static int dict_id = -1;
 
  /* exclusive start condition */
 %x S_READ_VALUE
+%x S_IGNORE_REAMIN_COLUMN
 
- /* pattern varialbles (use '()' for portable)*/
+ /* pattern varialbles (use '()' for portable, ?i: for case in-sensitive )*/
 identifier ([^ \t\r\n=]+)
-number (-?[0-9]*"."?[0-9]+([eE][+-]?0?[0-9]+)?)
+number (-?[0-9]*"."?[0-9]+)
+exp_posfix ([eE][+-]?0?[0-9]+)
+science_posfix (?i:[tgxkmunpfa]) 
 white_space ([ \t])
 eol (\r?\n)
 
@@ -80,7 +83,33 @@ eol (\r?\n)
 	abort();
 }
 
-<S_READ_VALUE>{number} {
+<S_READ_VALUE>{number}{science_posfix} {
+	char postfix = yytext[strlen(yytext) - 1];
+	yytext[strlen(yytext) - 1] = '\0'; /* remove postfix */
+	sscanf( yytext, "%lf", &dval ); 
+	switch ( postfix )
+	{
+		case 't': dval *= 1e12; break;
+		case 'g': dval *= 1e9; break;
+		case 'x': dval *= 1e6; break;
+		case 'k': dval *= 1e3; break;
+		case 'm': dval *= 1e-3; break;
+		case 'u': dval *= 1e-6; break;
+		case 'n': dval *= 1e-9; break;
+		case 'p': dval *= 1e-12; break;
+		case 'f': dval *= 1e-15; break;
+		case 'a': dval *= 1e-18; break;
+	}
+	hash_s_d_insert( dict_id, sval, dval );
+	if ( g_debug )
+	{
+		fprintf( stderr, "[Debug] insert key=%s value=%lf\n", sval, dval );
+	}
+	yy_pop_state();
+	yy_push_state( S_IGNORE_REAMIN_COLUMN );
+}
+
+<S_READ_VALUE>{number}{exp_posfix}? {
 	sscanf( yytext, "%lf", &dval ); 
 	hash_s_d_insert( dict_id, sval, dval );
 	if ( g_debug )
@@ -88,6 +117,7 @@ eol (\r?\n)
 		fprintf( stderr, "[Debug] insert key=%s value=%lf\n", sval, dval );
 	}
 	yy_pop_state();
+	yy_push_state( S_IGNORE_REAMIN_COLUMN );
 }
 
 <S_READ_VALUE>{white_space}|= {
@@ -98,6 +128,17 @@ eol (\r?\n)
 <S_READ_VALUE>. {
 	fprintf( stderr, "[Error] S_READ_VALUE unknown token='%s' line=%d\n", yytext, yylineno );
 	abort();
+}
+
+<S_IGNORE_REAMIN_COLUMN>.+ {
+	if ( g_debug )
+	{
+		fprintf( stderr, "[Debug] ignore remain column '%s'\n", yytext );
+	}
+}
+
+<S_IGNORE_REAMIN_COLUMN>{eol} {
+	yy_pop_state();
 }
 
  /* this token will be read after return of yywrap */

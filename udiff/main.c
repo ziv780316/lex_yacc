@@ -133,7 +133,7 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 	char *key;
 	if ( size1 != size2 )
 	{
-		fprintf( stderr, "[Error] dictionary size does not match %d != %d\n", size1, size2 );
+		fprintf( stderr, "[Warning] dictionary size does not match %d != %d\n", size1, size2 );
 		for ( i = 0; i < size1; ++i )
 		{
 			if ( !hash_s_d_has_key( id2, keys1[i] ) )
@@ -152,7 +152,6 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 				fprintf( stderr, "%s key {%s => %.10e} is not found in file %s\n", g_opts.input_file2, keys2[i], val, g_opts.input_file1 );
 			}
 		}
-		abort();
 	}
 
 	// compare value
@@ -173,8 +172,7 @@ void diff_two_dict ( int *dict_id1, int *dict_id2, FILE *fout, double rtol, doub
 	{
 		if ( !hash_s_d_has_key( id2, keys1[i] ) )
 		{
-			fprintf( stderr, "[Error] there is no key '%s' in file %s\n", keys1[i], g_opts.input_file2 );
-			abort();
+			continue;
 		}
 
 		key = keys1[i];
